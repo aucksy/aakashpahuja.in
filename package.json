@@ -1,0 +1,34 @@
+{
+  "name": "aakash-portfolio-experience",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Aakash Pahuja — two-personality, music-driven, WebGL portfolio experience. Milestone 1: the landing / overture.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b --noEmit"
+  },
+  "dependencies": {
+    "@react-three/drei": "^9.114.0",
+    "@react-three/fiber": "^8.17.10",
+    "@react-three/postprocessing": "^2.16.3",
+    "framer-motion": "^11.11.9",
+    "gsap": "^3.12.5",
+    "lenis": "^1.1.14",
+    "postprocessing": "^6.36.4",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "three": "^0.169.0",
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.11",
+    "@types/react-dom": "^18.3.1",
+    "@types/three": "^0.169.0",
+    "@vitejs/plugin-react": "^4.3.2",
+    "typescript": "^5.6.3",
+    "vite": "^6.0.1"
+  }
+}
