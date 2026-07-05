@@ -4,6 +4,7 @@ import { useExperience } from '@/store/useExperience';
 import { audio } from '@/audio/AudioEngine';
 import { loadSignal, GATHER_SECONDS } from './loadSignal';
 import { startPreload, worldVideoUrl } from '@/lib/videoPreload';
+import { useIsMobile } from '@/lib/useIsMobile';
 import WaveRing from './WaveRing';
 
 const mono: CSSProperties = {
@@ -71,6 +72,7 @@ export default function EnterControls() {
   const enter = useExperience((s) => s.enter);
   const setAudioStarted = useExperience((s) => s.setAudioStarted);
   const toggleMute = useExperience((s) => s.toggleMute);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (audioStarted) audio.setVolume(volume, muted);
@@ -128,8 +130,9 @@ export default function EnterControls() {
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 3, pointerEvents: 'none' }}>
-      {/* Identity kicker */}
-      <div style={{ position: 'absolute', top: 'clamp(18px,3vw,30px)', left: 'clamp(18px,3vw,30px)', ...mono, color: sceneMuted, transition: ease, display: 'flex', gap: 10, alignItems: 'center' }}>
+      {/* Identity kicker — hidden on phones, where it would collide with the
+          mute pill; the Hero re-states the name + title in-content just below. */}
+      <div style={{ position: 'absolute', top: 'clamp(18px,3vw,30px)', left: 'clamp(18px,3vw,30px)', ...mono, color: sceneMuted, transition: ease, display: isMobile ? 'none' : 'flex', gap: 10, alignItems: 'center' }}>
         <span style={{ width: 8, height: 8, borderRadius: 2, background: sceneAccent, boxShadow: `0 0 12px ${sceneAccent}`, transition: ease }} />
         Aakash Pahuja · Digital Product Manager / Designer
       </div>
