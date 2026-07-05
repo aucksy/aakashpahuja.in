@@ -1,16 +1,21 @@
 import { type ReactNode, type CSSProperties } from 'react';
 import { motion } from 'framer-motion';
+import { useExperience } from '@/store/useExperience';
 
 // Shared journey UI kit — keeps every chapter on the one glass design system
 // (§08) so the travel feels like one continuous world, not seven pages.
 
 const EASE = [0.2, 0.7, 0.2, 1] as const;
 
-/** Content that arrives on scroll — y+blur rise, honouring reduced-motion. */
+/** Content that slides up into place as it's scrolled to — a pronounced y-rise
+ *  + fade + unblur. The trigger is held until the element reaches the lower
+ *  part of the viewport (not the very bottom) so the motion actually plays in
+ *  view instead of finishing ~half a screen before you arrive at the section.
+ *  Honours reduced-motion (fade only, no travel/blur). */
 export function Reveal({
   children,
   delay = 0,
-  y = 28,
+  y = 56,
   style,
 }: {
   children: ReactNode;
@@ -18,12 +23,13 @@ export function Reveal({
   y?: number;
   style?: CSSProperties;
 }) {
+  const reduced = useExperience((s) => s.reducedMotion);
   return (
     <motion.div
-      initial={{ opacity: 0, y, filter: 'blur(6px)' }}
-      whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-      viewport={{ once: true, margin: '-12% 0px -12% 0px' }}
-      transition={{ duration: 0.8, ease: EASE, delay }}
+      initial={reduced ? { opacity: 0 } : { opacity: 0, y, filter: 'blur(8px)' }}
+      whileInView={reduced ? { opacity: 1 } : { opacity: 1, y: 0, filter: 'blur(0px)' }}
+      viewport={{ once: true, margin: '0px 0px -20% 0px' }}
+      transition={reduced ? { duration: 0.3, delay } : { duration: 0.72, ease: EASE, delay }}
       style={style}
     >
       {children}
