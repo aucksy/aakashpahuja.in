@@ -234,6 +234,7 @@ function Ripple() {
       s.phrase = LOAD_DURATION;
       s.beatCount = 0;
       loadSignal.progress = 0;
+      loadSignal.countInDone = false;
     }
     s.prevPhase = phase;
 
@@ -310,6 +311,19 @@ function Ripple() {
 
     // Count beats since the lock — the first three are the emphasized count-in.
     if (s.beatLocked && !gathering && danceBands.beat) s.beatCount++;
+
+    // The avatar holds his entrance until the three bounces have had their
+    // moment (beat 4 = the groove takes over). Time fallback covers the
+    // quiet-entry synthetic path; burst/world guarantee it can never be missed
+    // — the loader gate depends on this flag eventually flipping.
+    if (
+      !loadSignal.countInDone &&
+      ((s.beatLocked && (s.beatCount >= 4 || time - s.lockWall > 2.6)) ||
+        phase === 'burst' ||
+        phase === 'world')
+    ) {
+      loadSignal.countInDone = true;
+    }
 
     scene.step(dt, time, {
       ptr: s.ptr,

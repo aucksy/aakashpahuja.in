@@ -105,12 +105,29 @@ export default function AvatarIntro() {
   const [visible, setVisible] = useState(false);
   const [failed, setFailed] = useState(false);
   const [mobile, setMobile] = useState(false);
+  const [countInDone, setCountInDone] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const started = useRef(false);
   const rafRef = useRef(0);
 
-  const active = phase !== 'overture';
+  // He waits in the wings until the three bounces have landed (§ user spec —
+  // the walk-in was stealing attention from the count-in). The frame loop
+  // flips loadSignal.countInDone at beat 4; we poll it cheaply. The 10s
+  // backstop makes a deadlock impossible even if the flag were never set.
+  useEffect(() => {
+    if (phase === 'overture' || countInDone) return;
+    const startedAt = performance.now();
+    const id = window.setInterval(() => {
+      if (loadSignal.countInDone || performance.now() - startedAt > 10000) {
+        setCountInDone(true);
+        window.clearInterval(id);
+      }
+    }, 120);
+    return () => window.clearInterval(id);
+  }, [phase, countInDone]);
+
+  const active = phase !== 'overture' && countInDone;
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 880px)');
