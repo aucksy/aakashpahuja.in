@@ -1,23 +1,29 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useExperience } from '@/store/useExperience';
+import { loadSignal } from '@/scenes/Landing/loadSignal';
 
 /**
- * The avatar sequence (§ user spec #3). At the start of the world, Aakash walks
- * toward the camera over the cinematic city, stops, folds his hands and looks
- * at the visitor. The SAME element then morphs — one continuous animation — into
- * a small transparent avatar parked bottom-left for the rest of the journey.
+ * The avatar walk-in (§ user spec v2). The moment Enter is hit (phase =
+ * loading), Aakash fades in at the BOTTOM-RIGHT corner — behind the Dark/Light
+ * toggle — walking toward the visitor while the count-in dance and the 0→100
+ * loader run. The loader is gated on `loadSignal.avatarProgress`, so the burst
+ * fires only after the walk resolves into the folded-hands pose. The frozen
+ * pose then stays in the corner for the whole journey; the toggle above it
+ * remains fully usable (avatar is pointer-transparent and z-ordered beneath
+ * the HUD).
  *
- * The clip is generated on a solid chroma-green background (Higgsfield Soul →
- * seedance) and keyed to alpha HERE, per-frame on a canvas — so the avatar
- * composites cleanly over any world (§ "exported with transparency").
+ * The clip is green-screen (Higgsfield Soul → seedance) and chroma-keyed to
+ * alpha here, at quarter resolution (270×480) so the per-frame keying can
+ * never compete with the beat-synced dance for frame budget.
  */
 
 const SRC = '/assets/avatar-walk.mp4';
-const KW = 540; // keying resolution (perf cap)
-const KH = 960;
+const KW = 270;
+const KH = 480;
+const FAILSAFE_MS = 8000; // a stalled video must never hold the loader hostage
 
-/** Chroma-key one frame: green → transparent, with soft edges + despill. */
+/** Chroma-key one frame: green → transparent, soft edges + despill. */
 function keyFrame(ctx: CanvasRenderingContext2D, video: HTMLVideoElement): void {
   ctx.drawImage(video, 0, 0, KW, KH);
   const img = ctx.getImageData(0, 0, KW, KH);
@@ -26,12 +32,12 @@ function keyFrame(ctx: CanvasRenderingContext2D, video: HTMLVideoElement): void 
     const r = d[i];
     const g = d[i + 1];
     const b = d[i + 2];
-    const m = g - Math.max(r, b); // how green-dominant
+    const m = g - Math.max(r, b);
     if (m > 38 && g > 80) {
       d[i + 3] = 0;
     } else if (m > 12 && g > 60) {
       d[i + 3] = Math.round(255 * (1 - (m - 12) / 26));
-      d[i + 1] = Math.max(r, b); // despill the fringe
+      d[i + 1] = Math.max(r, b);
     }
   }
   ctx.putImageData(img, 0, 0);
@@ -40,95 +46,133 @@ function keyFrame(ctx: CanvasRenderingContext2D, video: HTMLVideoElement): void 
 export default function AvatarIntro() {
   const phase = useExperience((s) => s.phase);
   const reduced = useExperience((s) => s.reducedMotion);
-  const [stage, setStage] = useState<'idle' | 'walk' | 'corner' | 'failed'>('idle');
+  const [visible, setVisible] = useState(false); // first frame drawn → fade in
+  const [failed, setFailed] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const started = useRef(false);
   const rafRef = useRef(0);
 
-  // Enter the sequence when the world begins.
+  const active = phase !== 'overture';
+
   useEffect(() => {
-    if (phase !== 'world' || stage !== 'idle') return;
+    if (!active || started.current) return;
+    started.current = true;
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    if (!video || !canvas) return;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    if (!ctx) return;
+    const ctx = canvas?.getContext('2d', { willReadFrequently: true });
+    if (!video || !canvas || !ctx) {
+      loadSignal.avatarProgress = 1; // never gate the loader without an avatar
+      setFailed(true);
+      return;
+    }
 
-    const draw = () => {
-      if (video.readyState >= 2) keyFrame(ctx, video);
-      if (!video.paused && !video.ended) rafRef.current = requestAnimationFrame(draw);
+    const fail = () => {
+      // hard error only (missing/corrupt asset) — hide entirely
+      loadSignal.avatarProgress = 1;
+      setFailed(true);
     };
-
-    const fail = () => setStage('failed');
-    const onEnded = () => {
-      keyFrame(ctx, video); // freeze the final folded-hands pose
-      setStage('corner');
-    };
-    video.addEventListener('error', fail);
-    video.addEventListener('ended', onEnded);
-
-    if (reduced) {
-      // Reduced motion: no walk — jump straight to the final pose, corner only.
-      setStage('corner');
+    const showFinalPose = () => {
+      // playback refused (strict mobile autoplay policies, throttled tabs…):
+      // never block the loader, and show the folded-hands pose statically.
+      loadSignal.avatarProgress = 1;
       const seekEnd = () => {
-        video.currentTime = Math.max(0, video.duration - 0.05);
-        video.addEventListener('seeked', () => keyFrame(ctx, video), { once: true });
+        video.currentTime = Math.max(0, (video.duration || 5) - 0.05);
       };
+      video.addEventListener(
+        'seeked',
+        () => {
+          try {
+            keyFrame(ctx, video);
+            setVisible(true);
+          } catch {
+            /* ignore */
+          }
+        },
+        { once: true },
+      );
       if (video.readyState >= 1) seekEnd();
       else video.addEventListener('loadedmetadata', seekEnd, { once: true });
+    };
+    const finish = () => {
+      try {
+        keyFrame(ctx, video); // freeze the folded-hands final pose
+        setVisible(true);
+      } catch {
+        /* canvas may be gone */
+      }
+      loadSignal.avatarProgress = 1;
+    };
+    const onPause = () => {
+      // browser intervened mid-walk (not our doing, not the natural end)
+      if (!video.ended && loadSignal.avatarProgress < 1) showFinalPose();
+    };
+    video.addEventListener('error', fail);
+    video.addEventListener('ended', finish);
+    video.addEventListener('pause', onPause);
+
+    // Stalled decode / missing asset → release the loader, keep the site alive.
+    const failsafe = window.setTimeout(() => {
+      if (loadSignal.avatarProgress < 1) loadSignal.avatarProgress = 1;
+    }, FAILSAFE_MS);
+
+    if (reduced) {
+      // Reduced motion: no walk — final pose immediately, loader never gated.
+      showFinalPose();
     } else {
-      setStage('walk');
-      const start = () => {
-        void video.play().then(() => {
+      const draw = () => {
+        if (video.readyState >= 2) {
+          keyFrame(ctx, video);
+          if (!video.ended && video.duration > 0) {
+            loadSignal.avatarProgress = Math.max(
+              loadSignal.avatarProgress,
+              Math.min(0.995, video.currentTime / video.duration),
+            );
+          }
+          setVisible(true);
+        }
+        if (!video.ended) rafRef.current = requestAnimationFrame(draw);
+      };
+      void video
+        .play()
+        .then(() => {
           rafRef.current = requestAnimationFrame(draw);
-        }).catch(fail);
-      };
-      // Small beat so the glass dissolve leads and the walk lands on the city.
-      const t = window.setTimeout(start, 900);
-      return () => {
-        window.clearTimeout(t);
-        video.removeEventListener('error', fail);
-        video.removeEventListener('ended', onEnded);
-        cancelAnimationFrame(rafRef.current);
-      };
+        })
+        .catch(showFinalPose);
     }
+
     return () => {
+      window.clearTimeout(failsafe);
       video.removeEventListener('error', fail);
-      video.removeEventListener('ended', onEnded);
+      video.removeEventListener('ended', finish);
+      video.removeEventListener('pause', onPause);
       cancelAnimationFrame(rafRef.current);
     };
-  }, [phase, stage, reduced]);
-
-  if (phase !== 'world' || stage === 'failed') {
-    return (
-      <video ref={videoRef} src={SRC} muted playsInline preload="auto" style={{ display: 'none' }} />
-    );
-  }
-
-  const corner = stage === 'corner';
+  }, [active, reduced]);
 
   return (
     <>
       <video ref={videoRef} src={SRC} muted playsInline preload="auto" style={{ display: 'none' }} />
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={
-          corner
-            ? { opacity: 0.96, left: 20, bottom: 92, width: 96, x: 0 }
-            : { opacity: 1, left: '50%', bottom: 0, width: 'min(46vh, 340px)', x: '-50%' }
-        }
-        transition={{ type: 'spring', stiffness: 60, damping: 16, opacity: { duration: 0.9 } }}
-        style={{
-          position: 'fixed',
-          zIndex: 4,
-          pointerEvents: 'none',
-          aspectRatio: '9 / 16',
-          filter: corner ? 'drop-shadow(0 6px 18px rgba(0,0,0,0.45))' : 'drop-shadow(0 24px 60px rgba(0,0,0,0.55))',
-        }}
-        aria-hidden="true"
-      >
-        <canvas ref={canvasRef} width={KW} height={KH} style={{ width: '100%', height: '100%', display: 'block' }} />
-      </motion.div>
+      {active && !failed && (
+        <motion.div
+          initial={{ opacity: 0, x: 26 }}
+          animate={{ opacity: visible ? 0.98 : 0, x: visible ? 0 : 26 }}
+          transition={{ duration: 0.9, ease: [0.2, 0.7, 0.2, 1] }}
+          aria-hidden="true"
+          style={{
+            position: 'fixed',
+            right: 'clamp(10px, 2.5vw, 38px)',
+            bottom: 0,
+            zIndex: 2, // beneath the HUD (z 3) — "behind the world theme toggle"
+            pointerEvents: 'none', // toggle + dials stay fully usable
+            width: 'clamp(88px, 22vw, 190px)', // phone → desktop
+            aspectRatio: '9 / 16',
+            filter: 'drop-shadow(0 10px 28px rgba(0,0,0,0.5))',
+          }}
+        >
+          <canvas ref={canvasRef} width={KW} height={KH} style={{ width: '100%', height: '100%', display: 'block' }} />
+        </motion.div>
+      )}
     </>
   );
 }

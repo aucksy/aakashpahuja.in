@@ -15,10 +15,12 @@ export const loadSignal = {
   progress: 0, // 0..1 loading
   burst: 0, // 0..1 burst blow-out amount
   overall: 0, // live audio energy (for the ring)
+  avatarProgress: 0, // 0..1 avatar walk-in — the loader waits for the final pose
 };
 
 export function resetLoadSignal(): void {
   loadSignal.progress = 0;
   loadSignal.burst = 0;
   loadSignal.overall = 0;
+  loadSignal.avatarProgress = 0;
 }

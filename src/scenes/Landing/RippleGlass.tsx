@@ -281,12 +281,13 @@ function Ripple() {
         }
       } else {
         // DANCE: loader = one 8-beat phrase on the playback clock AND the world
-        // video download (§ user spec #2 — the world begins only after it has
-        // fully loaded). Burst fires ON the beat that completes both.
+        // video download AND the avatar's walk-in resolving into his final pose
+        // (§ user spec — loading finishes only when assets are loaded and the
+        // avatar has done its animation). Burst still fires ON a beat.
         const onGrid = audio.hasGrid() && playT != null;
         const elapsed = onGrid ? Math.max(0, (playT as number) - s.lockPlayT) : time - s.lockWall;
         const videoP = preloadProgress(worldVideoUrl(st.theme));
-        const p = Math.min(elapsed / s.phrase, videoP);
+        const p = Math.min(elapsed / s.phrase, videoP, loadSignal.avatarProgress);
         if (p >= 1 && (!onGrid || gridBeat)) {
           loadSignal.progress = 1;
           s.burstStart = time;

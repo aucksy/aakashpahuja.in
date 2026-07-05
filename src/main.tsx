@@ -12,6 +12,9 @@ if (import.meta.env.DEV) {
   void import('@react-three/fiber').then((m) => {
     (window as unknown as { __advance?: (t: number) => void }).__advance = (t) => m.advance(t, true);
   });
+  void import('./scenes/Landing/loadSignal').then((m) => {
+    (window as unknown as { __loadSignal?: unknown }).__loadSignal = m.loadSignal;
+  });
   void import('./audio/AudioEngine').then((m) => {
     (window as unknown as { __audioTools?: unknown }).__audioTools = {
       computeBeatGrid: m.computeBeatGrid,
