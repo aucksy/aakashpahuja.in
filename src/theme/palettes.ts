@@ -36,9 +36,9 @@ export const DARK: Palette = {
     { x: 0.55, y: 0.86, rgb: rgb('220,70,170'), a: 0.3 },
   ],
   base: parseHex('#c7d2ee'),
-  // Near-void glass tint — the dark landing reads truly DARK at rest; the
-  // world beneath only appears where the cursor/finger wipes.
-  frost: [0.045, 0.055, 0.1],
+  // Near-void glass tint (user-tuned: −35% again) — the dark landing reads
+  // pitch dark at rest; the world appears only where the cursor/finger wipes.
+  frost: [0.029, 0.036, 0.065],
   accent: rgb('93,229,224'),
 };
 

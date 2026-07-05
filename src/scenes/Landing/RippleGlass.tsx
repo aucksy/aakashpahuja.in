@@ -357,9 +357,9 @@ function Ripple() {
     uniforms.u_clear.value = s.clearPulse;
     const P = lerpPalette(s.themeMix);
     (uniforms.u_frost.value as THREE.Vector3).set(P.frost[0], P.frost[1], P.frost[2]);
-    // Dark frost must conceal MORE than light's milky white: near-black glass
-    // with only ~6% scene-through at rest; the wipe (cl→0.92) is the reveal.
-    uniforms.u_rest.value = 0.06 + 0.16 * s.themeMix;
+    // Dark frost conceals almost everything: ~4% scene-through at rest
+    // (user-tuned −35%); the wipe (cl→0.92) is the only reveal.
+    uniforms.u_rest.value = 0.04 + 0.18 * s.themeMix;
     (uniforms.u_res.value as THREE.Vector2).set(gl.domElement.width, gl.domElement.height);
   });
 
