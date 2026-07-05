@@ -7,15 +7,13 @@ import { rafWhenVisible } from '../rafWhenVisible';
 
 const IG = 'https://instagram.com/aakashpahuja108';
 
-// Real reel covers (pulled from the posts, saved locally so they never depend on
-// Instagram's expiring CDN URLs). Each tile links to its own reel.
+// Reel cover art (saved locally in public/assets so it never depends on
+// Instagram's expiring CDN URLs). Each square tile links to its own reel.
 const REELS = [
   { href: 'https://www.instagram.com/reel/DUdT5r1kp9N/', cover: '/assets/reel-1.jpg' },
   { href: 'https://www.instagram.com/reel/DSPxuoskiJu/', cover: '/assets/reel-2.jpg' },
   { href: 'https://www.instagram.com/reel/CwnemWAyueR/', cover: '/assets/reel-3.jpg' },
 ];
-
-const EASE = 'cubic-bezier(0.2,0.7,0.2,1)';
 
 /** Six neon strings that become the audio waveform — bass moves the low strings,
  *  treble the high ones; hovering "strums" them (§12 SC-06). */
@@ -88,12 +86,10 @@ function Strings() {
   );
 }
 
-/** A single reel cover: 9:16 thumbnail that links out to the Instagram reel,
- *  lifting + glowing in the chapter accent on hover/focus (§08 glass system). */
-function ReelCard({ href, cover, index }: { href: string; cover: string; index: number }) {
+/** A reel cover in a compact square tile that links out to the reel,
+ *  brightening + glowing in the chapter accent on hover/focus (§08 glass). */
+function SquareReel({ href, cover, index }: { href: string; cover: string; index: number }) {
   const [hover, setHover] = useState(false);
-  const reduced = useExperience.getState().reducedMotion;
-  const lift = hover && !reduced;
   return (
     <a
       href={href}
@@ -106,20 +102,19 @@ function ReelCard({ href, cover, index }: { href: string; cover: string; index: 
       onBlur={() => setHover(false)}
       style={{
         position: 'relative',
-        flex: '1 1 96px',
-        maxWidth: 168,
-        aspectRatio: '9 / 16',
-        borderRadius: 18,
+        width: 96,
+        height: 96,
+        flex: 'none',
+        borderRadius: 20,
         overflow: 'hidden',
         display: 'block',
         textDecoration: 'none',
         background: '#0a0d16',
         border: `1px solid ${hover ? 'var(--magenta)' : 'var(--glass-border)'}`,
         boxShadow: hover
-          ? '0 28px 60px -22px rgba(255,93,177,0.7), inset 0 1px 0 rgba(255,255,255,0.12)'
-          : '0 20px 50px -26px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.08)',
-        transform: lift ? 'translateY(-6px)' : 'translateY(0)',
-        transition: `transform 0.5s ${EASE}, box-shadow 0.5s ease, border-color 0.5s ease`,
+          ? '0 22px 50px -18px rgba(255,93,177,0.7), inset 0 1px 0 rgba(255,255,255,0.12)'
+          : '0 20px 50px -20px rgba(255,93,177,0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
+        transition: 'border-color 0.4s ease, box-shadow 0.4s ease',
       }}
     >
       <img
@@ -134,40 +129,10 @@ function ReelCard({ href, cover, index }: { href: string; cover: string; index: 
           width: '100%',
           height: '100%',
           objectFit: 'cover',
-          filter: hover ? 'brightness(1)' : 'brightness(0.9)',
-          transform: lift ? 'scale(1.06)' : 'scale(1)',
-          transition: `transform 0.9s ${EASE}, filter 0.5s ease`,
+          filter: hover ? 'brightness(1.05)' : 'brightness(0.95)',
+          transition: 'filter 0.4s ease',
         }}
       />
-      {/* grounding scrim so the tile reads as one object over any world */}
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(6,7,14,0.72) 0%, rgba(6,7,14,0) 44%)', pointerEvents: 'none' }} />
-      {/* opens-externally affordance — subtle at rest, lit on hover */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 8,
-          right: 8,
-          width: 24,
-          height: 24,
-          borderRadius: '50%',
-          display: 'grid',
-          placeItems: 'center',
-          fontSize: 12,
-          lineHeight: 1,
-          color: '#fff',
-          background: 'rgba(10,13,22,0.55)',
-          backdropFilter: 'blur(6px)',
-          WebkitBackdropFilter: 'blur(6px)',
-          opacity: hover ? 1 : 0.7,
-          transition: 'opacity 0.4s ease',
-          pointerEvents: 'none',
-        }}
-      >
-        ↗
-      </div>
-      <span style={{ position: 'absolute', left: 10, bottom: 9, fontFamily: 'var(--font-mono)', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.92)', pointerEvents: 'none' }}>
-        Reel
-      </span>
     </a>
   );
 }
@@ -194,13 +159,11 @@ export default function Guitar() {
       </Reveal>
 
       <Reveal delay={0.12}>
-        <div style={{ marginTop: 30 }}>
-          <div style={{ display: 'flex', gap: 'clamp(10px,1.6vw,16px)', flexWrap: 'wrap', alignItems: 'stretch', maxWidth: 560 }}>
-            {REELS.map((reel, i) => (
-              <ReelCard key={reel.href} href={reel.href} cover={reel.cover} index={i} />
-            ))}
-          </div>
-          <a href={IG} target="_blank" rel="noreferrer" style={{ display: 'inline-block', marginTop: 20, fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--magenta)', textDecoration: 'none', padding: '10px 18px', border: '1px solid var(--glass-border)', borderRadius: 999 }}>
+        <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginTop: 28, alignItems: 'center' }}>
+          {REELS.map((reel, i) => (
+            <SquareReel key={reel.href} href={reel.href} cover={reel.cover} index={i} />
+          ))}
+          <a href={IG} target="_blank" rel="noreferrer" style={{ fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--magenta)', textDecoration: 'none', padding: '10px 18px', border: '1px solid var(--glass-border)', borderRadius: 999 }}>
             @aakashpahuja108 ↗
           </a>
         </div>
