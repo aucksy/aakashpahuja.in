@@ -12,6 +12,12 @@ if (import.meta.env.DEV) {
   void import('@react-three/fiber').then((m) => {
     (window as unknown as { __advance?: (t: number) => void }).__advance = (t) => m.advance(t, true);
   });
+  void import('./audio/AudioEngine').then((m) => {
+    (window as unknown as { __audioTools?: unknown }).__audioTools = {
+      computeBeatGrid: m.computeBeatGrid,
+      pickLoopRegion: m.pickLoopRegion,
+    };
+  });
 }
 
 createRoot(document.getElementById('root')!).render(

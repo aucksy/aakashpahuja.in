@@ -113,6 +113,69 @@ export function computeBeatGrid(ch: Float32Array, sampleRate: number): BeatGrid 
   return { firstBeat, period, bpm: 60 / period };
 }
 
+/**
+ * Pick the cleanest seamless loop region (§ user spec: first playback runs from
+ * 00:00, wraps at ~00:28 back into ~00:02, then loops that region forever).
+ *
+ * Engineering, not guesswork:
+ *  1. Candidate loop points sit ON grid beats (loopStart near 2s, loopEnd near
+ *     28s) and the region length is a multiple of 4 beats — bar phase survives
+ *     the wrap, so the groove never stumbles.
+ *  2. Among the beat-aligned candidates, score the actual PCM continuity at the
+ *     splice — mean |x[ls+i] − x[le+i]| over ±\~90ms around the jump — and take
+ *     the pair whose waveforms match best. That's what makes the restart
+ *     inaudible: no click (sample continuity), no stumble (bar phase).
+ */
+export function pickLoopRegion(
+  ch: Float32Array,
+  sampleRate: number,
+  grid: BeatGrid,
+): { loopStart: number; loopEnd: number; seamScore: number } | null {
+  const p = grid.period;
+  if (!p) return null;
+  const durS = ch.length / sampleRate;
+  const beat = (k: number) => grid.firstBeat + k * p;
+  const W = Math.round(0.05 * sampleRate); // 50ms perceptual window
+
+  // What the ear hears at a splice is a jump in ENERGY or TIMBRE, not raw
+  // sample mismatch (a beat-aligned cut is masked by the kick transient).
+  const rms = (i0: number, n: number) => {
+    let s = 0;
+    for (let i = 0; i < n; i++) {
+      const v = ch[i0 + i] ?? 0;
+      s += v * v;
+    }
+    return Math.sqrt(s / n);
+  };
+  const zcr = (i0: number, n: number) => {
+    let c = 0;
+    for (let i = 1; i < n; i++) {
+      const a = ch[i0 + i - 1] ?? 0;
+      const b = ch[i0 + i] ?? 0;
+      if ((a < 0 && b >= 0) || (a >= 0 && b < 0)) c++;
+    }
+    return c / n;
+  };
+  const score = (lsIdx: number, leIdx: number) =>
+    Math.abs(rms(leIdx - W, W) - rms(lsIdx, W)) * 4 + // energy flow across the wrap
+    Math.abs(zcr(leIdx - W, W) - zcr(lsIdx, W)) + // timbre continuity
+    Math.abs((ch[leIdx] ?? 0) - (ch[lsIdx] ?? 0)) * 0.5; // instantaneous step (click)
+
+  let best: { loopStart: number; loopEnd: number; seamScore: number } | null = null;
+  const kMin = Math.max(1, Math.ceil((1.2 - grid.firstBeat) / p));
+  const kMax = Math.max(kMin, Math.floor((3.2 - grid.firstBeat) / p));
+  for (let k = kMin; k <= kMax; k++) {
+    const ls = beat(k);
+    for (let n = 36; n <= 48; n += 4) {
+      const le = beat(k + n);
+      if (le < 26.0 || le > Math.min(28.4, durS - 0.05)) continue;
+      const sc = score(Math.round(ls * sampleRate), Math.round(le * sampleRate));
+      if (!best || sc < best.seamScore) best = { loopStart: ls, loopEnd: le, seamScore: sc };
+    }
+  }
+  return best;
+}
+
 type AudioContextCtor = typeof AudioContext;
 
 class AudioEngine {
@@ -189,26 +252,29 @@ class AudioEngine {
 
       // Never stop/restart the graph while playing; only build a source once.
       if (!this.source) {
-        // --- seamless loop region (user spec: play from ~00:02, wrap at ~00:27).
-        // Both points snapped to grid BEATS and the region forced to a whole
-        // number of 8-beat phrases, so the wrap lands mid-groove on a beat —
-        // sample-accurate, no click, no gap, musically invisible.
+        // --- seamless loop region (user spec: FIRST playback runs untouched
+        // from 00:00 — the landing count-in owns the track's opening beats —
+        // then the wrap at ~00:28 drops back into ~00:02 and loops forever).
+        // Points are chosen by pickLoopRegion: beat-aligned, bar-phase-safe,
+        // and seam-scored against the actual PCM for an inaudible splice.
         const dur = this.buffer.duration;
         let ls = Math.min(2.0, dur * 0.1);
-        let le = Math.min(27.0, dur - 0.05);
-        const bg = this.grid;
-        if (bg?.period) {
-          const beat = (k: number) => bg.firstBeat + k * bg.period!;
-          const k1 = Math.max(0, Math.ceil((2.0 - bg.firstBeat) / bg.period));
-          ls = beat(k1);
-          const maxEnd = Math.min(27.3, dur - 0.05);
-          let n = Math.floor((maxEnd - ls) / bg.period / 8) * 8;
-          if (n < 8) n = Math.max(4, Math.floor((maxEnd - ls) / bg.period));
-          le = beat(k1 + n);
+        let le = Math.min(28.0, dur - 0.05);
+        const picked = this.grid
+          ? pickLoopRegion(this.buffer.getChannelData(0), this.buffer.sampleRate, this.grid)
+          : null;
+        if (picked) {
+          ls = picked.loopStart;
+          le = picked.loopEnd;
+          console.info(
+            '[audio] seamless loop %ss → %ss (beat-aligned, seam score %s)',
+            ls.toFixed(3),
+            le.toFixed(3),
+            picked.seamScore.toFixed(4),
+          );
         }
         this.loopStartS = ls;
         this.loopEndS = le;
-        console.info('[audio] seamless loop %ss → %ss (beat-snapped)', ls.toFixed(3), le.toFixed(3));
 
         // Remaining wait AFTER decode — if decode already ate the gather time,
         // start immediately; otherwise hold playback until the formation is set.
@@ -220,7 +286,7 @@ class AudioEngine {
         this.source.loopStart = ls;
         this.source.loopEnd = le;
         this.source.connect(this.analyser!);
-        this.source.start(startAt, ls); // playback begins AT the loop region
+        this.source.start(startAt); // from 00:00 — the count-in's opening beats intact
         this.startCtxTime = startAt;
         // Gain reaches target exactly WHEN playback begins — no fade softening
         // beat 1 (the pre-roll silence is the fade; 50ms floor kills any click).
@@ -257,14 +323,18 @@ class AudioEngine {
   // ---- beat-grid clock -----------------------------------------------------
 
   /** Seconds into the (looping) track — sample-clock accurate. Null until
-   *  playing. Accounts for the beat-snapped loop region: playback starts AT
-   *  loopStart and wraps loopEnd → loopStart forever after. */
+   *  playing. First pass runs 0 → loopEnd exactly as recorded (identical to the
+   *  locked landing for the whole entry sequence); every pass after wraps
+   *  loopEnd → loopStart. */
   getPlaybackTime(): number | null {
     if (!this.ctx || !this.playing || !this.buffer) return null;
     const t = this.ctx.currentTime - this.startCtxTime;
     if (t < 0) return null;
     const len = this.loopEndS - this.loopStartS;
-    if (len > 0) return this.loopStartS + (t % len);
+    if (len > 0 && t >= this.loopEndS) {
+      return this.loopStartS + ((t - this.loopEndS) % len);
+    }
+    if (len > 0) return t;
     return t % this.buffer.duration;
   }
 
