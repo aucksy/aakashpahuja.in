@@ -54,7 +54,10 @@ export default function Contact() {
           ))}
         </div>
 
-        <Reveal delay={0.4}>
+        {/* Last line of the last (centred) section: at max scroll it rests at
+            ~86% of the viewport and can't rise higher, so it needs a shallow
+            trigger or it would never cross the default line and reveal. */}
+        <Reveal delay={0.4} margin="0px 0px -8% 0px">
           <div style={{ marginTop: 64, fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--dim)' }}>
             Aakash Pahuja · Work earns the meeting · Play earns the memory
           </div>

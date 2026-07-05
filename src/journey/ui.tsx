@@ -8,19 +8,26 @@ import { useExperience } from '@/store/useExperience';
 const EASE = [0.2, 0.7, 0.2, 1] as const;
 
 /** Content that slides up into place as it's scrolled to — a pronounced y-rise
- *  + fade + unblur. The trigger is held until the element reaches the lower
- *  part of the viewport (not the very bottom) so the motion actually plays in
- *  view instead of finishing ~half a screen before you arrive at the section.
- *  Honours reduced-motion (fade only, no travel/blur). */
+ *  + fade + unblur. The trigger is held until the element reaches ~60% of the
+ *  viewport height (just below centre) so the motion plays right as you arrive
+ *  at it, rather than finishing a screen early. Honours reduced-motion (fade
+ *  only, no travel/blur).
+ *
+ *  `margin` (IntersectionObserver rootMargin) can be overridden for elements
+ *  that rest low in the viewport at max scroll — e.g. the last line of the last
+ *  (centred) section, which never rises past ~86% and would otherwise never
+ *  cross the default trigger line. Give those a shallow bottom margin. */
 export function Reveal({
   children,
   delay = 0,
   y = 56,
+  margin = '0px 0px -40% 0px',
   style,
 }: {
   children: ReactNode;
   delay?: number;
   y?: number;
+  margin?: string;
   style?: CSSProperties;
 }) {
   const reduced = useExperience((s) => s.reducedMotion);
@@ -28,7 +35,7 @@ export function Reveal({
     <motion.div
       initial={reduced ? { opacity: 0 } : { opacity: 0, y, filter: 'blur(8px)' }}
       whileInView={reduced ? { opacity: 1 } : { opacity: 1, y: 0, filter: 'blur(0px)' }}
-      viewport={{ once: true, margin: '0px 0px -20% 0px' }}
+      viewport={{ once: true, margin }}
       transition={reduced ? { duration: 0.3, delay } : { duration: 0.72, ease: EASE, delay }}
       style={style}
     >
