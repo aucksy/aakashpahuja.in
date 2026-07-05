@@ -95,20 +95,19 @@ a clean later upgrade (see `ASSETS_TODO.md`).
 | **7** | **GitHub — contribution constellation (SC-08)** | ✅ *(sample data)* |
 | **8** | **Arrival / Contact (SC-09)** | ✅ |
 
-**The city is now a REAL 3D street** (`src/scenes/City/CityScene.tsx`): procedural
-instanced window-lit towers on both sides, neon edge strips, audio-breathing
-signs, stars, fog, the `city.avif` matte as far skyline — and the camera
-physically drives down the road as you scroll (scroll = distance travelled). The
-glass overlay dissolves into it at world (T1). The Hero features the
-Higgsfield-generated **Soul render video** (`public/assets/aakash-hero.mp4`,
-Soul ID Aakash → soul_2 portrait → seedance_2.0, 36 credits) in a glass monolith.
+**Two worlds, two real environments** (`src/journey/WorldBackdrop.tsx`): the dark
+"Neon Nightfall" city (`world-city.mp4`) and the light "Golden Daybreak" beach
+(`world-beach.mp4`) crossfade behind the journey, with a GPU chroma-keyed avatar
+(`src/journey/AvatarIntro.tsx`) walking in as the tour guide. The glass overlay
+dissolves into the world at T1. The Hero is type-driven (no video monolith).
 
 **⚑ THE PERFECT LANDING IS LOCKED:** git tag `perfect-landing` (commit `ce03346`).
 `git checkout perfect-landing` restores it; `git diff perfect-landing -- src/scenes/Landing`
 must stay EMPTY for overture-feel files unless explicitly re-approved.
 
 Remaining polish, in rough priority:
-- Compress `aakash-hero.mp4` (9.6MB) + poster PNG (3.4MB) → WebM/WebP.
+- Compress the world videos (`world-city.mp4` ~13MB, `world-beach.mp4` ~12MB,
+  `avatar-walk.mp4` ~6MB) → WebM / lower bitrate.
 - Light-world daybreak treatment for the 3D city (palette exists, needs tuning).
 - Pinned scroll set-pieces, Work ⇄ Play morph everywhere (T2), live GitHub +
   Hevy data, licensed game key-art.
