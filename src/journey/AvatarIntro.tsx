@@ -165,7 +165,7 @@ export default function AvatarIntro() {
             bottom: 0,
             zIndex: 2, // beneath the HUD (z 3) — "behind the world theme toggle"
             pointerEvents: 'none', // toggle + dials stay fully usable
-            width: 'clamp(88px, 22vw, 190px)', // phone → desktop
+            width: 'clamp(114px, 28.6vw, 247px)', // phone → desktop (+30%)
             aspectRatio: '9 / 16',
             filter: 'drop-shadow(0 10px 28px rgba(0,0,0,0.5))',
           }}
