@@ -35,7 +35,7 @@ export default function NoWebGLFallback() {
           Aakash Pahuja · Digital Product Manager / Designer
         </div>
         <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'clamp(32px,6vw,58px)', lineHeight: 1.02, letterSpacing: '-0.02em', margin: '18px 0 0' }}>
-          Vibe Coding is easy, shipping experiences people love requires{' '}
+          Vibe coding is easy, but products people genuinely love still take{' '}
           <span style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', color: 'var(--cyan)' }}>obsession.</span>
         </h1>
         <p style={{ fontFamily: 'var(--font-body)', fontSize: 17, lineHeight: 1.6, color: 'var(--muted)', maxWidth: '60ch', marginTop: 20 }}>

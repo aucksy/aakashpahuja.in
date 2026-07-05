@@ -42,31 +42,26 @@ export default function Hero() {
         </div>
       </Reveal>
       <Words
-        text="Vibe Coding is easy,"
-        style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(44px,8.6vw,110px)', lineHeight: 0.96, letterSpacing: '-0.035em', textShadow: '0 2px 40px rgba(5,6,11,0.35)' }}
+        text="Vibe coding is easy, but..."
+        style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(44px,8.6vw,110px)', lineHeight: 0.96, letterSpacing: '-0.035em', textShadow: '0 2px 40px rgba(5,6,11,0.35)', maxWidth: '14ch' }}
       />
-      <Words
-        text="shipping experiences people love requires obsession."
-        style={{
-          fontFamily: 'var(--font-serif)',
-          fontStyle: 'italic',
-          fontSize: 'clamp(30px,5.8vw,72px)',
-          lineHeight: 1.04,
-          letterSpacing: '-0.01em',
-          marginTop: 14,
-          maxWidth: '22ch',
-          background: 'linear-gradient(100deg,var(--cyan),var(--violet) 55%,var(--magenta))',
-          WebkitBackgroundClip: 'text',
-          backgroundClip: 'text',
-          color: 'transparent',
-          filter: 'drop-shadow(0 0 30px rgba(139,123,247,0.3))',
-        }}
-      />
-      <Reveal delay={0.7}>
-        <p style={{ fontFamily: 'var(--font-body)', fontSize: 'clamp(15px,1.7vw,19px)', lineHeight: 1.62, color: 'var(--muted)', maxWidth: '52ch', margin: '32px 0 0' }}>
-          Generating code has never been easier. Products people genuinely love still take product
-          thinking, craft, iteration — obsession. I'm{' '}
-          <b style={{ color: 'var(--ink)', fontWeight: 600 }}>Aakash</b>, and this road is the tour.
+      <Reveal delay={0.55}>
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: 'clamp(17px,2.1vw,23px)', lineHeight: 1.6, color: 'var(--muted)', maxWidth: '52ch', margin: '30px 0 0' }}>
+          Products people genuinely love still take product thinking, craft, iteration —{' '}
+          <em
+            style={{
+              fontFamily: 'var(--font-serif)',
+              fontStyle: 'italic',
+              fontSize: '1.22em',
+              background: 'linear-gradient(100deg,var(--cyan),var(--violet) 55%,var(--magenta))',
+              WebkitBackgroundClip: 'text',
+              backgroundClip: 'text',
+              color: 'transparent',
+            }}
+          >
+            obsession.
+          </em>{' '}
+          I'm <b style={{ color: 'var(--ink)', fontWeight: 600 }}>Aakash</b>, and this path is the tour.
         </p>
       </Reveal>
       <Reveal delay={0.85}>
