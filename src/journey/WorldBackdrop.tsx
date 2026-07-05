@@ -87,7 +87,7 @@ export default function WorldBackdrop() {
           inset: 0,
           background: light
             ? 'linear-gradient(rgba(255,247,238,0.34), rgba(255,247,238,0.14) 40%, rgba(255,247,238,0.55))'
-            : 'linear-gradient(rgba(5,6,11,0.42), rgba(5,6,11,0.2) 40%, rgba(5,6,11,0.66))',
+            : 'linear-gradient(rgba(4,5,10,0.6), rgba(4,5,10,0.38) 40%, rgba(4,5,10,0.8))',
           backdropFilter: 'blur(5px) saturate(1.12)',
           WebkitBackdropFilter: 'blur(5px) saturate(1.12)',
           transition: 'background 1.2s ease',
