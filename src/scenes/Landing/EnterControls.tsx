@@ -128,7 +128,7 @@ export default function EnterControls() {
       {/* Identity kicker */}
       <div style={{ position: 'absolute', top: 'clamp(18px,3vw,30px)', left: 'clamp(18px,3vw,30px)', ...mono, color: sceneMuted, transition: ease, display: 'flex', gap: 10, alignItems: 'center' }}>
         <span style={{ width: 8, height: 8, borderRadius: 2, background: sceneAccent, boxShadow: `0 0 12px ${sceneAccent}`, transition: ease }} />
-        Aakash Pahuja · Sr. Associate Product Manager
+        Aakash Pahuja · Digital Product Manager / Designer
       </div>
 
       {/* Persistent mute */}

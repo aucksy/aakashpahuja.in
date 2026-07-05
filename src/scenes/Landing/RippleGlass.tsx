@@ -4,6 +4,7 @@ import { EffectComposer, Bloom, Noise, Vignette } from '@react-three/postprocess
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
 
+import { Suspense, lazy } from 'react';
 import { useExperience } from '@/store/useExperience';
 import { dprCap } from '@/lib/env';
 import { lerpPalette } from '@/theme/palettes';
@@ -11,6 +12,10 @@ import { audio } from '@/audio/AudioEngine';
 import { SceneBeneath } from './SceneBeneath';
 import { loadSignal } from './loadSignal';
 import { MAX, vertexShader, fragmentShader } from './rippleShader';
+
+// The real 3D city (mounted at burst so its shaders compile behind the opaque
+// glass; revealed when the glass overlay dissolves at world).
+const CityScene = lazy(() => import('@/scenes/City/CityScene'));
 
 const LOAD_DURATION = 5.0; // fallback loader length when no beat grid exists
 const PHRASE_BEATS = 8; // with a grid, the loader = two bars — ends ON a beat (§23)
@@ -25,6 +30,7 @@ const TRAIL_TAU = 0.85; // seconds — wipe-trail re-frost time constant
  *  runs the ripple fragment shader over it each frame. */
 function Ripple() {
   const { gl, size } = useThree();
+  const meshRef = useRef<THREE.Mesh>(null);
 
   const scene = useMemo(() => new SceneBeneath(), []);
   const texture = useMemo(() => {
@@ -77,6 +83,7 @@ function Ripple() {
       u_orig: { value: orig },
       u_age: { value: age },
       u_amp: { value: amp },
+      u_fade: { value: 1 },
     }),
     [texture, trailTexture, orig, age, amp],
   );
@@ -98,6 +105,7 @@ function Ripple() {
     lockWall: 0,
     phrase: LOAD_DURATION,
     beatCount: 0, // beats since the lock — 1..3 get the emphasized count-in
+    fade: 1, // glass overlay opacity — dissolves to reveal the 3D city at world
     prevT: performance.now(),
   });
 
@@ -192,6 +200,21 @@ function Ripple() {
       bands.beat = false;
     }
     loadSignal.overall = bands.overall;
+
+    // --- glass dissolve: at world the opaque overlay fades out, revealing the
+    // 3D city behind it (T1's rack-focus push "through the glass"). Once fully
+    // dissolved, skip ALL 2D painting — the landing's cost drops to ~zero and
+    // the city owns the frame. (bands above still run: signs breathe on music.)
+    if (st.phase === 'world') {
+      s.fade = Math.max(0, s.fade - dt * 0.8);
+      uniforms.u_fade.value = s.fade;
+      if (meshRef.current) meshRef.current.visible = s.fade > 0.001;
+      if (s.fade <= 0.001) return;
+    } else {
+      s.fade = 1;
+      uniforms.u_fade.value = 1;
+      if (meshRef.current) meshRef.current.visible = true;
+    }
 
     // --- scheduled beat clock: did the playhead cross a grid beat this frame? ---
     // (sample-clock accurate + volume-independent — the analyser taps pre-gain,
@@ -293,7 +316,7 @@ function Ripple() {
       ptrOn: Math.min(1, s.ptrOn),
       themeMix: s.themeMix,
       reduced: st.reducedMotion,
-      mode: phase === 'overture' ? 'idle' : phase === 'world' ? 'world' : 'dance',
+      mode: phase === 'overture' ? 'idle' : 'dance',
       colorMix: 0,
       bands: danceBands,
       burst: loadSignal.burst,
@@ -339,7 +362,10 @@ function Ripple() {
   });
 
   return (
-    <mesh frustumCulled={false} renderOrder={-1}>
+    // Drawn LAST (renderOrder 10) as a transparent overlay over the 3D city;
+    // opaque through the whole overture (u_fade=1 → visually identical to the
+    // locked landing), dissolving only at world.
+    <mesh ref={meshRef} frustumCulled={false} renderOrder={10}>
       <planeGeometry args={[2, 2]} />
       <shaderMaterial
         uniforms={uniforms}
@@ -347,6 +373,7 @@ function Ripple() {
         fragmentShader={fragmentShader}
         depthTest={false}
         depthWrite={false}
+        transparent
       />
     </mesh>
   );
@@ -372,14 +399,23 @@ function Post({ reduced }: { reduced: boolean }) {
 export default function RippleGlass() {
   const quality = useExperience((s) => s.quality);
   const reduced = useExperience((s) => s.reducedMotion);
+  const phase = useExperience((s) => s.phase);
+  // Mount the city during the burst: its shaders/textures warm up behind the
+  // still-opaque glass, so the dissolve at world reveals a ready street.
+  const cityMounted = phase === 'burst' || phase === 'world';
   return (
     <Canvas
       style={{ position: 'fixed', inset: 0, zIndex: 0, touchAction: 'none' }}
       gl={{ alpha: false, antialias: false, powerPreference: 'high-performance', stencil: false }}
       dpr={[1, Math.min(1.5, dprCap(quality))]}
-      camera={{ position: [0, 0, 1], near: 0.1, far: 10 }}
+      camera={{ position: [0, 5.4, 0], near: 0.1, far: 1500 }}
       onCreated={({ gl }) => gl.setClearColor(0x05060b, 1)}
     >
+      {cityMounted && (
+        <Suspense fallback={null}>
+          <CityScene />
+        </Suspense>
+      )}
       <Ripple />
       {quality !== 'low' && <Post reduced={reduced} />}
     </Canvas>

@@ -40,6 +40,7 @@ export const fragmentShader = /* glsl */ `
   uniform vec2 u_orig[${MAX}];
   uniform float u_age[${MAX}];
   uniform float u_amp[${MAX}];
+  uniform float u_fade; // 1 = opaque glass overlay · 0 = dissolved into the 3D city
 
   float hgt(vec2 q) {
     float h = 0.0;
@@ -106,6 +107,6 @@ export const fragmentShader = /* glsl */ `
     col += spec * 0.10 * cl;
     float vig = smoothstep(1.15, 0.25, distance(v_uv, vec2(0.5)));
     col *= mix(0.82, 1.05, vig);
-    gl_FragColor = vec4(col, 1.0);
+    gl_FragColor = vec4(col, u_fade);
   }
 `;

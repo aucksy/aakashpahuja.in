@@ -32,10 +32,10 @@ export default function NoWebGLFallback() {
     >
       <div style={card}>
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.24em', textTransform: 'uppercase', color: 'var(--cyan)' }}>
-          Aakash Pahuja · Sr. Associate Product Manager
+          Aakash Pahuja · Digital Product Manager / Designer
         </div>
         <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'clamp(32px,6vw,58px)', lineHeight: 1.02, letterSpacing: '-0.02em', margin: '18px 0 0' }}>
-          Products people love are an{' '}
+          Shipping experiences people love takes{' '}
           <span style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', color: 'var(--cyan)' }}>obsession.</span>
         </h1>
         <p style={{ fontFamily: 'var(--font-body)', fontSize: 17, lineHeight: 1.6, color: 'var(--muted)', maxWidth: '60ch', marginTop: 20 }}>

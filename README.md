@@ -95,16 +95,23 @@ a clean later upgrade (see `ASSETS_TODO.md`).
 | **7** | **GitHub — contribution constellation (SC-08)** | ✅ *(sample data)* |
 | **8** | **Arrival / Contact (SC-09)** | ✅ |
 
-The journey now scrolls end-to-end (Lenis playhead + GSAP + the `city.avif`
-parallax backdrop). Remaining polish, in rough priority:
-- **Light-world city** — `city.avif` is the night skyline; Light mode currently
-  only warm-tints it. A daybreak treatment (or a warm matte-painting variant) is
-  on `ASSETS_TODO.md`.
-- **Camera-on-spline / road** — the backdrop parallaxes but doesn't yet travel a
-  CatmullRom road; the un-sourced 3D city + road (§19-B) would enable the full
-  "camera never cuts" ideal. Current 2.5D parallax is the spec's endorsed Option A.
-- **Work ⇄ Play morph everywhere** (T2), pinned scroll set-pieces, per-chapter
-  camera framing, live GitHub + Hevy data, licensed game key-art.
+**The city is now a REAL 3D street** (`src/scenes/City/CityScene.tsx`): procedural
+instanced window-lit towers on both sides, neon edge strips, audio-breathing
+signs, stars, fog, the `city.avif` matte as far skyline — and the camera
+physically drives down the road as you scroll (scroll = distance travelled). The
+glass overlay dissolves into it at world (T1). The Hero features the
+Higgsfield-generated **Soul render video** (`public/assets/aakash-hero.mp4`,
+Soul ID Aakash → soul_2 portrait → seedance_2.0, 36 credits) in a glass monolith.
+
+**⚑ THE PERFECT LANDING IS LOCKED:** git tag `perfect-landing` (commit `ce03346`).
+`git checkout perfect-landing` restores it; `git diff perfect-landing -- src/scenes/Landing`
+must stay EMPTY for overture-feel files unless explicitly re-approved.
+
+Remaining polish, in rough priority:
+- Compress `aakash-hero.mp4` (9.6MB) + poster PNG (3.4MB) → WebM/WebP.
+- Light-world daybreak treatment for the 3D city (palette exists, needs tuning).
+- Pinned scroll set-pieces, Work ⇄ Play morph everywhere (T2), live GitHub +
+  Hevy data, licensed game key-art.
 
 ## Assets
 
