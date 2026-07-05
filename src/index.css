@@ -32,6 +32,8 @@
   --colorcloset: #e8c07d;
   --digest: #8b7bf7;
   --pause: #b7a8ff;
+  --forgeai: #ef7638;
+  --bragbuddy: #6470ee;
 
   /* Type scale (fluid clamp, §07: 104/58/40/26/20/16/13) */
   --fs-display: clamp(44px, 9vw, 104px);

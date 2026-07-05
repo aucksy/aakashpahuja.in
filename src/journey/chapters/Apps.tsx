@@ -44,6 +44,22 @@ const APPS: App[] = [
     icon: '/assets/icon-pause.png',
     screens: ['/assets/pause-home.jpg', '/assets/pause-style.jpg'],
   },
+  {
+    name: 'Forge AI',
+    accent: 'var(--forgeai)',
+    tag: 'Chat-based AI coach for progressive overload',
+    desc: 'A workout and calorie tracker you talk to. Ask in plain language and it programs the next session to keep your lifts climbing — targets, deloads, even calories from a meal photo — all aimed at your weight goal. Answers from a built-in local coach, or bring a Claude / OpenAI key for full conversational AI.',
+    icon: '/assets/icon-forgeai.png',
+    screens: ['/assets/forgeai-home.jpg', '/assets/forgeai-chat.jpg', '/assets/forgeai-analytics.jpg'],
+  },
+  {
+    name: 'BragBuddy',
+    accent: 'var(--bragbuddy)',
+    tag: 'AI journal for work wins',
+    desc: 'Speak or type a few seconds a day and BragBuddy keeps an always-ready record of your wins, organised around your own appraisal framework — the pillars your company reviews you on. At review time, AI curates a polished, manager-ready summary: the strongest wins per pillar, ready to paste into the form.',
+    icon: '/assets/icon-bragbuddy.png',
+    screens: ['/assets/bragbuddy-home.jpg', '/assets/bragbuddy-framework.jpg', '/assets/bragbuddy-summary.jpg'],
+  },
 ];
 
 function Phone({ screens, accent, flip }: { screens: string[]; accent: string; flip: boolean }) {
@@ -100,11 +116,11 @@ export default function Apps() {
         My Apps
       </Kicker>
       <Reveal>
-        <h2 style={{ ...h2Style, maxWidth: '18ch' }}>Four apps that leap into your hands.</h2>
+        <h2 style={{ ...h2Style, maxWidth: '18ch' }}>Six apps that leap into your hands.</h2>
       </Reveal>
       <Reveal delay={0.05}>
         <p style={{ ...leadStyle, marginBottom: 20 }}>
-          All Android. All offline-first, privacy-first — nothing leaves the device. Each keeps its own accent hue.
+          Android, privacy-first — each with its own accent hue. Four run entirely on-device; the two AI apps put you in control, bring-your-own-key.
         </p>
       </Reveal>
 
