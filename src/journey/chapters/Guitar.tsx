@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import Chapter from '../Chapter';
 import { Kicker, Reveal, h2Style, leadStyle, glassCard } from '../ui';
 import { audio } from '@/audio/AudioEngine';
 import { useExperience } from '@/store/useExperience';
 import { rafWhenVisible } from '../rafWhenVisible';
+import { ReelTile } from '../ReelTile';
 
 const IG = 'https://instagram.com/aakashpahuja108';
 
@@ -86,57 +87,6 @@ function Strings() {
   );
 }
 
-/** A reel cover in a compact square tile that links out to the reel,
- *  brightening + glowing in the chapter accent on hover/focus (§08 glass). */
-function SquareReel({ href, cover, index }: { href: string; cover: string; index: number }) {
-  const [hover, setHover] = useState(false);
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      aria-label={`Watch guitar cover reel ${index + 1} of ${REELS.length} on Instagram`}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      onFocus={() => setHover(true)}
-      onBlur={() => setHover(false)}
-      style={{
-        position: 'relative',
-        width: 96,
-        height: 96,
-        flex: 'none',
-        borderRadius: 20,
-        overflow: 'hidden',
-        display: 'block',
-        textDecoration: 'none',
-        background: '#0a0d16',
-        border: `1px solid ${hover ? 'var(--magenta)' : 'var(--glass-border)'}`,
-        boxShadow: hover
-          ? '0 22px 50px -18px rgba(255,93,177,0.7), inset 0 1px 0 rgba(255,255,255,0.12)'
-          : '0 20px 50px -20px rgba(255,93,177,0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
-        transition: 'border-color 0.4s ease, box-shadow 0.4s ease',
-      }}
-    >
-      <img
-        src={cover}
-        alt=""
-        loading="lazy"
-        decoding="async"
-        draggable={false}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          filter: hover ? 'brightness(1.05)' : 'brightness(0.95)',
-          transition: 'filter 0.4s ease',
-        }}
-      />
-    </a>
-  );
-}
-
 export default function Guitar() {
   return (
     <Chapter id="guitar" label="Guitar & Singing">
@@ -161,7 +111,7 @@ export default function Guitar() {
       <Reveal delay={0.12}>
         <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginTop: 28, alignItems: 'center' }}>
           {REELS.map((reel, i) => (
-            <SquareReel key={reel.href} href={reel.href} cover={reel.cover} index={i} />
+            <ReelTile key={reel.href} href={reel.href} cover={reel.cover} index={i} total={REELS.length} subject="guitar cover" accent="var(--magenta)" glowRgb="255,93,177" />
           ))}
           <a href={IG} target="_blank" rel="noreferrer" style={{ fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--magenta)', textDecoration: 'none', padding: '10px 18px', border: '1px solid var(--glass-border)', borderRadius: 999 }}>
             @aakashpahuja108 ↗

@@ -2,10 +2,18 @@ import { useRef, useState } from 'react';
 import { motion, animate } from 'framer-motion';
 import Chapter from '../Chapter';
 import { Kicker, Reveal, glassCard } from '../ui';
+import { ReelTile } from '../ReelTile';
 
 const TOTAL = 9775; // kg lifted since 2022 (Hevy · hevy.com/user/aucksy)
 const BUS = 12000; // a London double-decker
 const HEVY = 'https://hevy.com/user/aucksy';
+
+// Workout reel covers (saved locally in public/assets). Same square-tile
+// pattern as the Guitar chapter; the Hevy pill sits after them.
+const REELS = [
+  { href: 'https://www.instagram.com/reel/ComBPwdgzXx/', cover: '/assets/workout-1.jpg' },
+  { href: 'https://www.instagram.com/reel/CpjoO7jomOk/', cover: '/assets/workout-2.jpg' },
+];
 
 const EQUIV = [
   { n: '≈ 20', unit: 'grand pianos' },
@@ -96,7 +104,16 @@ export default function Fitness() {
               style={{ height: '100%', borderRadius: 999, background: 'linear-gradient(90deg,var(--coral),var(--gold))', boxShadow: '0 0 18px rgba(255,138,91,0.6)' }}
             />
           </div>
-          <a href={HEVY} target="_blank" rel="noreferrer" style={{ display: 'inline-block', marginTop: 22, fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--coral)', textDecoration: 'none', padding: '10px 18px', border: '1px solid var(--glass-border)', borderRadius: 999 }}>
+        </div>
+      </Reveal>
+
+      {/* Workout reels + the Hevy pill — same square-tile row as Guitar & Singing */}
+      <Reveal delay={0.18}>
+        <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginTop: 28, alignItems: 'center' }}>
+          {REELS.map((reel, i) => (
+            <ReelTile key={reel.href} href={reel.href} cover={reel.cover} index={i} total={REELS.length} subject="workout" accent="var(--coral)" glowRgb="255,138,91" />
+          ))}
+          <a href={HEVY} target="_blank" rel="noreferrer" style={{ fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--coral)', textDecoration: 'none', padding: '10px 18px', border: '1px solid var(--glass-border)', borderRadius: 999 }}>
             The log on Hevy ↗
           </a>
         </div>
