@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import Chapter from '../Chapter';
 import { Kicker, Reveal, h2Style, leadStyle } from '../ui';
+import { useIsMobile } from '@/lib/useIsMobile';
 
 interface App {
   name: string;
@@ -62,7 +63,7 @@ const APPS: App[] = [
   },
 ];
 
-function Phone({ screens, accent, flip }: { screens: string[]; accent: string; flip: boolean }) {
+function Phone({ screens, accent, flip, flat }: { screens: string[]; accent: string; flip: boolean; flat: boolean }) {
   const [i, setI] = useState(0);
   useEffect(() => {
     const id = window.setInterval(() => setI((v) => (v + 1) % screens.length), 2600);
@@ -71,14 +72,16 @@ function Phone({ screens, accent, flip }: { screens: string[]; accent: string; f
 
   const frame: CSSProperties = {
     position: 'relative',
-    width: 'clamp(190px,22vw,244px)',
+    // On phones the phone stands nearly flat and a touch larger — it's centred
+    // below the copy, so it reads as a hero, not a tilted thumbnail in a column.
+    width: flat ? 'clamp(208px,58vw,260px)' : 'clamp(190px,22vw,244px)',
     aspectRatio: '9 / 19.3',
     borderRadius: 36,
     padding: 9,
     background: 'linear-gradient(160deg,#1a1f30,#0a0d16)',
     border: '1px solid rgba(255,255,255,0.12)',
     boxShadow: `0 40px 90px -30px rgba(0,0,0,0.9), 0 0 60px -18px ${accent}, inset 0 1px 0 rgba(255,255,255,0.14)`,
-    transform: `perspective(1400px) rotateY(${flip ? 11 : -11}deg) rotateX(4deg)`,
+    transform: flat ? 'perspective(1400px) rotateX(2deg)' : `perspective(1400px) rotateY(${flip ? 11 : -11}deg) rotateX(4deg)`,
     flex: 'none',
   };
   return (
@@ -110,6 +113,7 @@ function Phone({ screens, accent, flip }: { screens: string[]; accent: string; f
 }
 
 export default function Apps() {
+  const isMobile = useIsMobile();
   return (
     <Chapter id="apps" label="My Apps">
       <Kicker n="02" accent="var(--emerald)">
@@ -132,10 +136,13 @@ export default function Apps() {
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: 'minmax(0,1fr) auto',
-                  gap: 'clamp(28px,5vw,64px)',
+                  // Phone → single column on mobile: copy on top, phone centred
+                  // below. The rtl flip (which alternates sides on desktop) is
+                  // dropped so the text never gets squeezed into a ~140px column.
+                  gridTemplateColumns: isMobile ? '1fr' : 'minmax(0,1fr) auto',
+                  gap: isMobile ? 28 : 'clamp(28px,5vw,64px)',
                   alignItems: 'center',
-                  direction: flip ? 'rtl' : 'ltr',
+                  direction: isMobile ? 'ltr' : flip ? 'rtl' : 'ltr',
                 }}
               >
                 <div style={{ direction: 'ltr' }}>
@@ -151,7 +158,7 @@ export default function Apps() {
                   </p>
                 </div>
                 <div style={{ direction: 'ltr', display: 'flex', justifyContent: 'center' }}>
-                  <Phone screens={app.screens} accent={app.accent} flip={flip} />
+                  <Phone screens={app.screens} accent={app.accent} flip={flip} flat={isMobile} />
                 </div>
               </div>
             </Reveal>
