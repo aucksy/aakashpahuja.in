@@ -4,125 +4,99 @@ import { useExperience } from '@/store/useExperience';
 import { loadSignal } from '@/scenes/Landing/loadSignal';
 
 /**
- * The avatar (§ user spec, final): fades in walking at the BOTTOM-RIGHT —
- * behind the Dark/Light toggle — while the 0→100 loading runs, resolves into
- * his folded-hands pose, and stays there for the whole journey. Desktop: big —
- * his head reaches ~half the screen. Phones: smaller.
+ * The avatar (final form): fades in walking at the BOTTOM-RIGHT — behind the
+ * Dark/Light toggle — while the 0→100 loading runs, resolves into his
+ * folded-hands pose, and stays there for the whole journey. Desktop: head at
+ * ~half the screen. Phones: smaller.
  *
- * SYNC-SAFETY (the hard requirement): the count-in dance must NEVER drop a
- * frame. Video decode + canvas getImageData (a GPU-pipeline readback) during
- * the dance is what broke the beat sync before. So ALL of that now happens
- * during the OVERTURE, before Enter: the green-screen clip is seek-stepped and
- * chroma-keyed into small ImageBitmaps, chunked between timeouts so even the
- * ripple never hitches. During loading, "playback" is nothing but stamping
- * pre-keyed bitmaps at 12fps — zero decode, zero readback, zero stalls.
+ * SMOOTH *and* SYNC-SAFE — the lesson of three iterations:
+ *   · v2 keyed with canvas getImageData per frame → GPU-pipeline READBACK
+ *     stalls → broke the beat-synced dance.
+ *   · v3 pre-baked 12fps bitmaps → stall-free but visibly choppy.
+ *   · v4 (this): the video plays NATIVELY (hardware decode, full frame rate)
+ *     and the chroma key runs in a tiny WebGL shader. texImage2D uploads the
+ *     frame CPU→GPU (async, no stall) and the shader writes transparency.
+ *     Zero readbacks, zero decode on the main thread — the dance keeps every
+ *     frame, and the walk is silk.
  */
 
 const SRC = '/assets/avatar-walk.mp4';
-const KW = 216;
-const KH = 384;
-const BAKE_FPS = 12;
+const CW = 405;
+const CH = 720;
 const FAILSAFE_MS = 8000; // the loader must never be held hostage
 
-/** Chroma-key in place: green → transparent, soft edges + despill. */
-function keyImageData(img: ImageData): void {
-  const d = img.data;
-  for (let i = 0; i < d.length; i += 4) {
-    const r = d[i];
-    const g = d[i + 1];
-    const b = d[i + 2];
-    const m = g - Math.max(r, b);
-    if (m > 38 && g > 80) {
-      d[i + 3] = 0;
-    } else if (m > 12 && g > 60) {
-      d[i + 3] = Math.round(255 * (1 - (m - 12) / 26));
-      d[i + 1] = Math.max(r, b);
-    }
+const VS = `
+  attribute vec2 p;
+  varying vec2 v;
+  void main() { v = p * 0.5 + 0.5; gl_Position = vec4(p, 0.0, 1.0); }
+`;
+// Same key curve as the CPU version: transparent above g−max(r,b) ≈ 38/255,
+// soft edge from ≈12/255, despill the green fringe. Premultiplied output.
+const FS = `
+  precision mediump float;
+  varying vec2 v;
+  uniform sampler2D t;
+  void main() {
+    vec4 c = texture2D(t, v);
+    float m = c.g - max(c.r, c.b);
+    float a = 1.0 - smoothstep(0.047, 0.149, m);
+    c.g = mix(c.g, max(c.r, c.b), smoothstep(0.02, 0.12, m));
+    gl_FragColor = vec4(c.rgb * a, a);
   }
+`;
+
+interface Keyer {
+  draw: (video: HTMLVideoElement) => void;
 }
 
-// Module-level bake (survives remounts; runs once per page load).
-const bake: { frames: ImageBitmap[]; total: number; done: boolean; failed: boolean } = {
-  frames: [],
-  total: 0,
-  done: false,
-  failed: false,
-};
-let bakeStarted = false;
-
-if (import.meta.env.DEV) {
-  (window as unknown as { __avatarBake?: unknown }).__avatarBake = bake;
-}
-
-function startBake(): void {
-  if (bakeStarted) return;
-  bakeStarted = true;
-  const video = document.createElement('video');
-  video.src = SRC;
-  video.muted = true;
-  video.playsInline = true;
-  video.preload = 'auto';
-  // Detached <video> elements may never load in throttled/background contexts;
-  // parking it hidden in the DOM guarantees the fetch+decode pipeline runs.
-  video.style.display = 'none';
-  document.body.appendChild(video);
-  const cv = document.createElement('canvas');
-  cv.width = KW;
-  cv.height = KH;
-  const ctx = cv.getContext('2d', { willReadFrequently: true });
-  if (!ctx) {
-    bake.failed = true;
-    bake.done = true;
-    return;
-  }
-  const finish = () => {
-    if (bake.done) return;
-    bake.done = true;
-    if (!bake.frames.length) bake.failed = true;
-    video.remove();
-    video.removeAttribute('src');
-    video.load();
+function initKeyer(canvas: HTMLCanvasElement): Keyer | null {
+  const gl = canvas.getContext('webgl', {
+    alpha: true,
+    premultipliedAlpha: true,
+    preserveDrawingBuffer: true, // the final pose persists after the loop stops
+    antialias: false,
+  });
+  if (!gl) return null;
+  const compile = (type: number, src: string) => {
+    const s = gl.createShader(type);
+    if (!s) return null;
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) return null;
+    return s;
   };
-  video.addEventListener('error', finish);
-  video.addEventListener(
-    'loadedmetadata',
-    () => {
-      const dur = Math.min(video.duration || 5, 6);
-      bake.total = Math.max(2, Math.floor(dur * BAKE_FPS));
-      let i = 0;
-      const step = () => {
-        if (i >= bake.total) {
-          finish();
-          return;
-        }
-        video.addEventListener(
-          'seeked',
-          () => {
-            void (async () => {
-              try {
-                ctx.drawImage(video, 0, 0, KW, KH);
-                const img = ctx.getImageData(0, 0, KW, KH);
-                keyImageData(img);
-                ctx.putImageData(img, 0, 0);
-                bake.frames.push(await createImageBitmap(cv));
-              } catch {
-                /* skip frame */
-              }
-              i++;
-              // Idle-chunked: one small step at a time so the overture's
-              // ripple never hitches while we work.
-              window.setTimeout(step, 40);
-            })();
-          },
-          { once: true },
-        );
-        video.currentTime = Math.min(dur - 0.03, i / BAKE_FPS);
-      };
-      step();
+  const vs = compile(gl.VERTEX_SHADER, VS);
+  const fs = compile(gl.FRAGMENT_SHADER, FS);
+  if (!vs || !fs) return null;
+  const prog = gl.createProgram();
+  if (!prog) return null;
+  gl.attachShader(prog, vs);
+  gl.attachShader(prog, fs);
+  gl.linkProgram(prog);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return null;
+  gl.useProgram(prog);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(prog, 'p');
+  gl.enableVertexAttribArray(loc);
+  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const tex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+  gl.viewport(0, 0, CW, CH);
+  return {
+    draw(video: HTMLVideoElement) {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
     },
-    { once: true },
-  );
-  window.setTimeout(finish, 30000); // absolute bake ceiling
+  };
 }
 
 export default function AvatarIntro() {
@@ -131,16 +105,12 @@ export default function AvatarIntro() {
   const [visible, setVisible] = useState(false);
   const [failed, setFailed] = useState(false);
   const [mobile, setMobile] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const started = useRef(false);
   const rafRef = useRef(0);
 
   const active = phase !== 'overture';
-
-  // Bake during the overture, long before the beat-critical sequence.
-  useEffect(() => {
-    startBake();
-  }, []);
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 880px)');
@@ -150,14 +120,14 @@ export default function AvatarIntro() {
     return () => mq.removeEventListener('change', apply);
   }, []);
 
-  // The walk-in: stamp pre-keyed bitmaps; report progress; freeze final pose.
   useEffect(() => {
     if (!active || started.current) return;
     started.current = true;
+    const video = videoRef.current;
     const canvas = canvasRef.current;
-    const ctx = canvas?.getContext('2d');
-    if (!canvas || !ctx) {
-      loadSignal.avatarProgress = 1;
+    const keyer = canvas ? initKeyer(canvas) : null;
+    if (!video || !canvas || !keyer) {
+      loadSignal.avatarProgress = 1; // never gate the loader without an avatar
       setFailed(true);
       return;
     }
@@ -166,49 +136,82 @@ export default function AvatarIntro() {
       if (loadSignal.avatarProgress < 1) loadSignal.avatarProgress = 1;
     }, FAILSAFE_MS);
 
-    const start = performance.now();
-    let lastDrawn = -1;
-    const tick = () => {
-      if (bake.failed) {
-        loadSignal.avatarProgress = 1;
-        setFailed(true);
-        return;
-      }
-      const total = bake.total || Math.max(2, bake.frames.length);
-      // Reduced motion: no walk — jump straight to the final pose.
-      const timeIdx = reduced
-        ? total - 1
-        : Math.floor(((performance.now() - start) / 1000) * BAKE_FPS);
-      const idx = Math.min(timeIdx, bake.frames.length - 1, total - 1);
-      if (idx >= 0 && idx !== lastDrawn) {
-        ctx.clearRect(0, 0, KW, KH);
-        ctx.drawImage(bake.frames[idx], 0, 0);
-        lastDrawn = idx;
-        setVisible(true);
-      }
-      if (bake.done && idx >= total - 1 && idx === bake.frames.length - 1) {
-        // Final pose reached — release the loader, free all but the last frame.
-        loadSignal.avatarProgress = 1;
-        for (let i = 0; i < bake.frames.length - 1; i++) bake.frames[i].close();
-        bake.frames.splice(0, bake.frames.length - 1);
-        return;
-      }
-      loadSignal.avatarProgress = Math.max(
-        loadSignal.avatarProgress,
-        Math.min(0.99, total > 1 ? Math.max(0, timeIdx) / (total - 1) : 0),
-      );
-      rafRef.current = requestAnimationFrame(tick);
+    const fail = () => {
+      // hard error only (missing/corrupt asset) — hide entirely
+      loadSignal.avatarProgress = 1;
+      setFailed(true);
     };
-    rafRef.current = requestAnimationFrame(tick);
+    const drawOnce = () => {
+      try {
+        keyer.draw(video);
+        setVisible(true);
+      } catch {
+        /* ignore */
+      }
+    };
+    const showFinalPose = () => {
+      // playback refused (strict autoplay policies, throttled tabs…):
+      // static folded-hands pose, loader released.
+      loadSignal.avatarProgress = 1;
+      const seekEnd = () => {
+        video.currentTime = Math.max(0, (video.duration || 5) - 0.05);
+      };
+      video.addEventListener('seeked', drawOnce, { once: true });
+      if (video.readyState >= 1) seekEnd();
+      else video.addEventListener('loadedmetadata', seekEnd, { once: true });
+    };
+    const finish = () => {
+      drawOnce(); // freeze the folded-hands final pose (preserveDrawingBuffer)
+      loadSignal.avatarProgress = 1;
+      cancelAnimationFrame(rafRef.current);
+    };
+    const onPause = () => {
+      if (!video.ended && loadSignal.avatarProgress < 1) showFinalPose();
+    };
+    video.addEventListener('error', fail);
+    video.addEventListener('ended', finish);
+    video.addEventListener('pause', onPause);
+
+    if (reduced) {
+      showFinalPose();
+    } else {
+      let lastT = -1;
+      const loop = () => {
+        // Upload only when the video has a NEW frame — halves the GPU uploads
+        // for a 30fps clip on a 60Hz display. Never a readback, never a stall.
+        if (video.readyState >= 2 && video.currentTime !== lastT) {
+          lastT = video.currentTime;
+          keyer.draw(video);
+          setVisible(true);
+          if (!video.ended && video.duration > 0) {
+            loadSignal.avatarProgress = Math.max(
+              loadSignal.avatarProgress,
+              Math.min(0.995, video.currentTime / video.duration),
+            );
+          }
+        }
+        if (!video.ended) rafRef.current = requestAnimationFrame(loop);
+      };
+      void video
+        .play()
+        .then(() => {
+          rafRef.current = requestAnimationFrame(loop);
+        })
+        .catch(showFinalPose);
+    }
 
     return () => {
       window.clearTimeout(failsafe);
+      video.removeEventListener('error', fail);
+      video.removeEventListener('ended', finish);
+      video.removeEventListener('pause', onPause);
       cancelAnimationFrame(rafRef.current);
     };
   }, [active, reduced]);
 
   return (
     <>
+      <video ref={videoRef} src={SRC} muted playsInline preload="auto" style={{ display: 'none' }} />
       {active && !failed && (
         <motion.div
           initial={{ opacity: 0, x: 22 }}
@@ -223,14 +226,13 @@ export default function AvatarIntro() {
             // (z 2) and the HUD (z 3) — behind the toggle, never blocks it.
             zIndex: 1,
             pointerEvents: 'none',
-            // Desktop: head reaches ~half the screen (the clip has a little
-            // headroom, so 56vh puts the head at ≈50vh). Phones: smaller.
+            // Desktop: head reaches ~half the screen. Phones: smaller.
             height: mobile ? '32vh' : 'min(56vh, 660px)',
             aspectRatio: '9 / 16',
             filter: 'drop-shadow(0 14px 34px rgba(0,0,0,0.55))',
           }}
         >
-          <canvas ref={canvasRef} width={KW} height={KH} style={{ width: '100%', height: '100%', display: 'block' }} />
+          <canvas ref={canvasRef} width={CW} height={CH} style={{ width: '100%', height: '100%', display: 'block' }} />
         </motion.div>
       )}
     </>
