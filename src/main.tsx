@@ -16,6 +16,8 @@ if (import.meta.env.DEV) {
     (window as unknown as { __audioTools?: unknown }).__audioTools = {
       computeBeatGrid: m.computeBeatGrid,
       pickLoopRegion: m.pickLoopRegion,
+      estimateDownbeatPhase: m.estimateDownbeatPhase,
+      bakeSeamlessLoop: m.bakeSeamlessLoop,
     };
   });
 }

@@ -114,23 +114,58 @@ export function computeBeatGrid(ch: Float32Array, sampleRate: number): BeatGrid 
 }
 
 /**
- * Pick the cleanest seamless loop region (§ user spec: first playback runs from
- * 00:00, wraps at ~00:28 back into ~00:02, then loops that region forever).
- *
- * Engineering, not guesswork:
- *  1. Candidate loop points sit ON grid beats (loopStart near 2s, loopEnd near
- *     28s) and the region length is a multiple of 4 beats — bar phase survives
- *     the wrap, so the groove never stumbles.
- *  2. Among the beat-aligned candidates, score the actual PCM continuity at the
- *     splice — mean |x[ls+i] − x[le+i]| over ±\~90ms around the jump — and take
- *     the pair whose waveforms match best. That's what makes the restart
- *     inaudible: no click (sample continuity), no stumble (bar phase).
+ * Estimate which beat-phase class (k mod 4) carries the downbeats: the class
+ * whose beats consistently open with the most energy. Loop points anchored on
+ * downbeats mean the wrap always lands on a bar-start — the strongest masking
+ * transient the track has.
  */
-export function pickLoopRegion(
-  ch: Float32Array,
-  sampleRate: number,
-  grid: BeatGrid,
-): { loopStart: number; loopEnd: number; seamScore: number } | null {
+export function estimateDownbeatPhase(ch: Float32Array, sampleRate: number, grid: BeatGrid): number {
+  if (!grid.period) return 0;
+  const W = Math.round(0.03 * sampleRate); // 30ms onset window
+  const totals = [0, 0, 0, 0];
+  const counts = [0, 0, 0, 0];
+  const nBeats = Math.floor((ch.length / sampleRate - grid.firstBeat) / grid.period);
+  for (let k = 0; k < nBeats; k++) {
+    const i0 = Math.round((grid.firstBeat + k * grid.period) * sampleRate);
+    let s = 0;
+    for (let i = 0; i < W; i++) {
+      const v = ch[i0 + i] ?? 0;
+      s += v * v;
+    }
+    totals[k % 4] += Math.sqrt(s / W);
+    counts[k % 4]++;
+  }
+  let best = 0;
+  for (let d = 1; d < 4; d++) {
+    if (totals[d] / Math.max(1, counts[d]) > totals[best] / Math.max(1, counts[best])) best = d;
+  }
+  return best;
+}
+
+/**
+ * Pick the cleanest seamless loop region (§ user spec: first playback runs from
+ * 00:00, wraps at ~00:28 back into ~00:02, then loops that region forever; the
+ * wrap must NOT cut a phrase early).
+ *
+ * Sound-engineering, not guesswork:
+ *  1. Both loop points sit on DOWNBEATS (bar starts) — the wrap lands on the
+ *     bar's strongest transient, and the region is whole bars by construction.
+ *  2. loopEnd is searched LATE (~27.3–29s) so the final phrase completes.
+ *  3. Among candidates, score perceptual continuity at the splice (energy flow,
+ *     timbre, instantaneous step) and prefer the LATEST near-tied end.
+ *  4. start() then BAKES a 60ms equal-power crossfade into the buffer at the
+ *     seam (bakeSeamlessLoop) — the splice becomes sample-continuous, exactly
+ *     like an offline gapless master (§11).
+ */
+export interface LoopRegion {
+  loopStart: number;
+  loopEnd: number;
+  seamScore: number;
+  downbeatPhase: number;
+  bars: number;
+}
+
+export function pickLoopRegion(ch: Float32Array, sampleRate: number, grid: BeatGrid): LoopRegion | null {
   const p = grid.period;
   if (!p) return null;
   const durS = ch.length / sampleRate;
@@ -161,19 +196,71 @@ export function pickLoopRegion(
     Math.abs(zcr(leIdx - W, W) - zcr(lsIdx, W)) + // timbre continuity
     Math.abs((ch[leIdx] ?? 0) - (ch[lsIdx] ?? 0)) * 0.5; // instantaneous step (click)
 
-  let best: { loopStart: number; loopEnd: number; seamScore: number } | null = null;
-  const kMin = Math.max(1, Math.ceil((1.2 - grid.firstBeat) / p));
-  const kMax = Math.max(kMin, Math.floor((3.2 - grid.firstBeat) / p));
-  for (let k = kMin; k <= kMax; k++) {
-    const ls = beat(k);
-    for (let n = 36; n <= 48; n += 4) {
-      const le = beat(k + n);
-      if (le < 26.0 || le > Math.min(28.4, durS - 0.05)) continue;
+  // Anchor BOTH points on downbeats — the wrap lands on a bar-start transient,
+  // and the region is whole bars by construction.
+  const d = estimateDownbeatPhase(ch, sampleRate, grid);
+  const downbeats: number[] = [];
+  for (let k = d; beat(k) < durS; k += 4) downbeats.push(k);
+
+  const startKs = downbeats.filter((k) => beat(k) >= 1.7 && beat(k) <= 3.4);
+  // Search LATE (user: "you are cutting it a bit early") — let the last phrase
+  // resolve before the wrap.
+  const maxEnd = Math.min(29.2, durS - 0.08);
+  const endKs = downbeats.filter((k) => beat(k) >= 27.2 && beat(k) <= maxEnd);
+  // Fallback windows if the track is structured unusually.
+  const startPool = startKs.length ? startKs : downbeats.filter((k) => beat(k) >= 1.2 && beat(k) <= 4.2);
+  const endPool = endKs.length ? endKs : downbeats.filter((k) => beat(k) >= 25.5 && beat(k) <= maxEnd);
+
+  const candidates: LoopRegion[] = [];
+  for (const k of startPool) {
+    for (const ke of endPool) {
+      if (ke - k < 16) continue; // at least 4 bars of loop
+      const ls = beat(k);
+      const le = beat(ke);
       const sc = score(Math.round(ls * sampleRate), Math.round(le * sampleRate));
-      if (!best || sc < best.seamScore) best = { loopStart: ls, loopEnd: le, seamScore: sc };
+      candidates.push({ loopStart: ls, loopEnd: le, seamScore: sc, downbeatPhase: d, bars: (ke - k) / 4 });
     }
   }
-  return best;
+  if (!candidates.length) return null;
+  const bestScore = Math.min(...candidates.map((c) => c.seamScore));
+  // Among near-tied seams (within 25%), take the LATEST end — never cut early.
+  const nearTies = candidates.filter((c) => c.seamScore <= bestScore * 1.25);
+  nearTies.sort((a, b) => b.loopEnd - a.loopEnd || a.seamScore - b.seamScore);
+  return nearTies[0];
+}
+
+/**
+ * Bake a gapless master at runtime (§11 "equal-power crossfade the seam"):
+ * copy the PCM and, over the last `fadeS` before loopEnd, equal-power
+ * crossfade into the material that precedes loopStart. The final pre-wrap
+ * sample becomes identical to the sample before loopStart, so the native
+ * sample-accurate loop jump is mathematically continuous — no click, no step,
+ * no audible restart. (First-pass listeners hear a ~60ms morph, inaudible.)
+ */
+export function bakeSeamlessLoop(
+  ctx: BaseAudioContext,
+  src: AudioBuffer,
+  loopStart: number,
+  loopEnd: number,
+  fadeS = 0.06,
+): AudioBuffer {
+  const sr = src.sampleRate;
+  const lsIdx = Math.round(loopStart * sr);
+  const leIdx = Math.round(loopEnd * sr);
+  const w = Math.max(8, Math.min(Math.round(fadeS * sr), lsIdx - 1));
+  const out = ctx.createBuffer(src.numberOfChannels, src.length, sr);
+  for (let c = 0; c < src.numberOfChannels; c++) {
+    const a = src.getChannelData(c);
+    const o = out.getChannelData(c);
+    o.set(a);
+    for (let i = 0; i < w; i++) {
+      const t = ((i + 1) / w) * Math.PI * 0.5;
+      const pos = leIdx - w + i;
+      const donor = lsIdx - w + i;
+      o[pos] = (a[pos] ?? 0) * Math.cos(t) + (a[donor] ?? 0) * Math.sin(t);
+    }
+  }
+  return out;
 }
 
 type AudioContextCtor = typeof AudioContext;
@@ -263,13 +350,18 @@ class AudioEngine {
         const picked = this.grid
           ? pickLoopRegion(this.buffer.getChannelData(0), this.buffer.sampleRate, this.grid)
           : null;
+        let playBuffer = this.buffer;
         if (picked) {
           ls = picked.loopStart;
           le = picked.loopEnd;
+          // Bake the gapless master: equal-power crossfade at the seam (§11).
+          playBuffer = bakeSeamlessLoop(this.ctx, this.buffer, ls, le);
           console.info(
-            '[audio] seamless loop %ss → %ss (beat-aligned, seam score %s)',
+            '[audio] seamless loop %ss → %ss · %s bars · downbeat phase %s · seam %s · crossfade baked',
             ls.toFixed(3),
             le.toFixed(3),
+            picked.bars,
+            picked.downbeatPhase,
             picked.seamScore.toFixed(4),
           );
         }
@@ -281,7 +373,7 @@ class AudioEngine {
         const delay = opts?.notBeforeMs ? Math.max(0, (opts.notBeforeMs - performance.now()) / 1000) : 0;
         const startAt = this.ctx.currentTime + delay;
         this.source = this.ctx.createBufferSource();
-        this.source.buffer = this.buffer;
+        this.source.buffer = playBuffer; // the baked gapless master
         this.source.loop = true;
         this.source.loopStart = ls;
         this.source.loopEnd = le;
