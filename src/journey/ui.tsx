@@ -13,32 +13,39 @@ const EASE = [0.2, 0.7, 0.2, 1] as const;
  *  at it, rather than finishing a screen early. Honours reduced-motion (fade
  *  only, no travel/blur).
  *
- *  `margin` (IntersectionObserver rootMargin) can be overridden for elements
- *  that rest low in the viewport at max scroll — e.g. the last line of the last
- *  (centred) section, which never rises past ~86% and would otherwise never
- *  cross the default trigger line. Give those a shallow bottom margin. */
+ *  `margin` (IntersectionObserver rootMargin) can be overridden — e.g. a shallow
+ *  bottom ('0px 0px -10% 0px') for content that rests low at max scroll (the last
+ *  centred section never rises past ~86%, so the default line would strand it).
+ *
+ *  `immediate` plays the motion on mount instead of on a scroll-cross — for the
+ *  hero, which is already on screen the instant the world arrives, so its lines
+ *  slide in together on load rather than waiting for a scroll (and without
+ *  depending on where they happen to sit in the viewport). */
 export function Reveal({
   children,
   delay = 0,
   y = 56,
   margin = '0px 0px -40% 0px',
+  immediate = false,
   style,
 }: {
   children: ReactNode;
   delay?: number;
   y?: number;
   margin?: string;
+  immediate?: boolean;
   style?: CSSProperties;
 }) {
   const reduced = useExperience((s) => s.reducedMotion);
-  return (
-    <motion.div
-      initial={reduced ? { opacity: 0 } : { opacity: 0, y, filter: 'blur(8px)' }}
-      whileInView={reduced ? { opacity: 1 } : { opacity: 1, y: 0, filter: 'blur(0px)' }}
-      viewport={{ once: true, margin }}
-      transition={reduced ? { duration: 0.3, delay } : { duration: 0.72, ease: EASE, delay }}
-      style={style}
-    >
+  const from = reduced ? { opacity: 0 } : { opacity: 0, y, filter: 'blur(8px)' };
+  const to = reduced ? { opacity: 1 } : { opacity: 1, y: 0, filter: 'blur(0px)' };
+  const transition = reduced ? { duration: 0.3, delay } : { duration: 0.72, ease: EASE, delay };
+  return immediate ? (
+    <motion.div initial={from} animate={to} transition={transition} style={style}>
+      {children}
+    </motion.div>
+  ) : (
+    <motion.div initial={from} whileInView={to} viewport={{ once: true, margin }} transition={transition} style={style}>
       {children}
     </motion.div>
   );

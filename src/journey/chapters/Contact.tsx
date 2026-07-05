@@ -8,17 +8,23 @@ const LINKS = [
   { label: 'Hevy', value: 'hevy.com/user/aucksy', href: 'https://hevy.com/user/aucksy', accent: 'var(--coral)' },
 ];
 
+// The last, centred section: its content can't scroll above centre, so the
+// aggressive default reveal trigger (~60% vh) would strand the lower links and
+// footer (they never cross the line). Reveal the whole section as it rises into
+// view from the bottom instead — everything sits below ~86% at max scroll.
+const NEAR = '0px 0px -10% 0px';
+
 /** SC-09 — the road curves into the sky; contact links as constellations. */
 export default function Contact() {
   return (
     <Chapter id="contact" label="Contact">
       <div style={{ textAlign: 'center', maxWidth: 820, margin: '0 auto' }}>
-        <Reveal>
+        <Reveal margin={NEAR}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 22 }}>
             07 · Arrival
           </div>
         </Reveal>
-        <Reveal delay={0.05}>
+        <Reveal delay={0.05} margin={NEAR}>
           <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'clamp(36px,7vw,84px)', lineHeight: 1.0, letterSpacing: '-0.03em', margin: 0, textWrap: 'balance' }}>
             Let's build something
             <br />
@@ -30,7 +36,7 @@ export default function Contact() {
 
         <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 14, margin: '48px 0 0' }}>
           {LINKS.map((l, i) => (
-            <Reveal key={l.label} delay={0.1 + i * 0.05}>
+            <Reveal key={l.label} delay={0.1 + i * 0.05} margin={NEAR}>
               <a
                 href={l.href}
                 target={l.href.startsWith('http') ? '_blank' : undefined}
@@ -54,10 +60,7 @@ export default function Contact() {
           ))}
         </div>
 
-        {/* Last line of the last (centred) section: at max scroll it rests at
-            ~86% of the viewport and can't rise higher, so it needs a shallow
-            trigger or it would never cross the default line and reveal. */}
-        <Reveal delay={0.4} margin="0px 0px -8% 0px">
+        <Reveal delay={0.4} margin={NEAR}>
           <div style={{ marginTop: 64, fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--dim)' }}>
             Aakash Pahuja · Work earns the meeting · Play earns the memory
           </div>

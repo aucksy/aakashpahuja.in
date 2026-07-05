@@ -35,7 +35,7 @@ function Words({ text, style }: { text: string; style: React.CSSProperties }) {
 export default function Hero() {
   return (
     <Chapter id="hero" label="Hero">
-      <Reveal>
+      <Reveal immediate>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: 'var(--font-mono)', fontSize: 11.5, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'var(--cyan)', marginBottom: 26 }}>
           <span style={{ width: 7, height: 7, borderRadius: 2, background: 'var(--cyan)', boxShadow: '0 0 12px var(--cyan)' }} />
           Aakash Pahuja — Digital Product Manager / Designer
@@ -45,7 +45,7 @@ export default function Hero() {
         text="Vibe coding is easy, but..."
         style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 'clamp(44px,8.6vw,110px)', lineHeight: 0.96, letterSpacing: '-0.035em', textShadow: '0 2px 40px rgba(5,6,11,0.35)', maxWidth: '14ch' }}
       />
-      <Reveal delay={0.55}>
+      <Reveal delay={0.55} immediate>
         <p style={{ fontFamily: 'var(--font-body)', fontSize: 'clamp(17px,2.1vw,23px)', lineHeight: 1.6, color: 'var(--muted)', maxWidth: '52ch', margin: '30px 0 0' }}>
           Products people genuinely love still take product thinking, craft, iteration —{' '}
           <em
@@ -64,7 +64,7 @@ export default function Hero() {
           I'm <b style={{ color: 'var(--ink)', fontWeight: 600 }}>Aakash</b>, and this path is the tour.
         </p>
       </Reveal>
-      <Reveal delay={0.85}>
+      <Reveal delay={0.85} immediate>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 46, fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--muted)' }}>
           <motion.span animate={{ y: [0, 6, 0] }} transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}>
             Travel the road
