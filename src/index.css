@@ -49,9 +49,24 @@
   color-scheme: dark;
 }
 
-/* Light world sets a warmer scheme hint (used by native controls) */
+/* Light world — Golden Daybreak is its own design system (§06), not an
+   inversion: ink goes dark, glass goes bright, so typography stays perfectly
+   readable over the sunlit beach world (§ user spec #6). */
 html[data-theme='light'] {
   color-scheme: light;
+  --ink: #231a2e;
+  --muted: rgba(35, 26, 46, 0.74);
+  --dim: rgba(35, 26, 46, 0.52);
+  --glass-fill: rgba(255, 255, 255, 0.5);
+  --glass-border: rgba(35, 26, 46, 0.14);
+  /* accents deepen in daylight so kickers/links keep AA contrast on sand/sky */
+  --cyan: #0e7c8c;
+  --violet: #6a52dd;
+  --magenta: #c33f7c;
+  --emerald: #1f9c72;
+  --coral: #d95f36;
+  --gold: #a97f28;
+  --blue: #3f6ad8;
 }
 
 * {

@@ -4,18 +4,14 @@ import { EffectComposer, Bloom, Noise, Vignette } from '@react-three/postprocess
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
 
-import { Suspense, lazy } from 'react';
 import { useExperience } from '@/store/useExperience';
 import { dprCap } from '@/lib/env';
 import { lerpPalette } from '@/theme/palettes';
 import { audio } from '@/audio/AudioEngine';
+import { worldVideoUrl, preloadProgress } from '@/lib/videoPreload';
 import { SceneBeneath } from './SceneBeneath';
 import { loadSignal } from './loadSignal';
 import { MAX, vertexShader, fragmentShader } from './rippleShader';
-
-// The real 3D city (mounted at burst so its shaders compile behind the opaque
-// glass; revealed when the glass overlay dissolves at world).
-const CityScene = lazy(() => import('@/scenes/City/CityScene'));
 
 const LOAD_DURATION = 5.0; // fallback loader length when no beat grid exists
 const PHRASE_BEATS = 8; // with a grid, the loader = two bars — ends ON a beat (§23)
@@ -84,6 +80,7 @@ function Ripple() {
       u_age: { value: age },
       u_amp: { value: amp },
       u_fade: { value: 1 },
+      u_rest: { value: 0.1 },
     }),
     [texture, trailTexture, orig, age, amp],
   );
@@ -283,11 +280,13 @@ function Ripple() {
           gathering = false;
         }
       } else {
-        // DANCE: loader = one 8-beat phrase measured on the playback clock, and
-        // the burst fires ON the beat that completes it (holds at 99 if needed).
+        // DANCE: loader = one 8-beat phrase on the playback clock AND the world
+        // video download (§ user spec #2 — the world begins only after it has
+        // fully loaded). Burst fires ON the beat that completes both.
         const onGrid = audio.hasGrid() && playT != null;
         const elapsed = onGrid ? Math.max(0, (playT as number) - s.lockPlayT) : time - s.lockWall;
-        const p = elapsed / s.phrase;
+        const videoP = preloadProgress(worldVideoUrl(st.theme));
+        const p = Math.min(elapsed / s.phrase, videoP);
         if (p >= 1 && (!onGrid || gridBeat)) {
           loadSignal.progress = 1;
           s.burstStart = time;
@@ -358,6 +357,8 @@ function Ripple() {
     uniforms.u_clear.value = s.clearPulse;
     const P = lerpPalette(s.themeMix);
     (uniforms.u_frost.value as THREE.Vector3).set(P.frost[0], P.frost[1], P.frost[2]);
+    // Dark frost must conceal like light's milky white does: lower rest floor.
+    uniforms.u_rest.value = 0.1 + 0.12 * s.themeMix;
     (uniforms.u_res.value as THREE.Vector2).set(gl.domElement.width, gl.domElement.height);
   });
 
@@ -400,24 +401,28 @@ export default function RippleGlass() {
   const quality = useExperience((s) => s.quality);
   const reduced = useExperience((s) => s.reducedMotion);
   const phase = useExperience((s) => s.phase);
-  // Mount the city during the burst: its shaders/textures warm up behind the
-  // still-opaque glass, so the dissolve at world reveals a ready street.
-  const cityMounted = phase === 'burst' || phase === 'world';
+  // At world the whole glass canvas dissolves (CSS) to reveal the cinematic
+  // world VIDEO behind it (WorldBackdrop, z:0). Post is dropped at world so the
+  // composer can't paint over the video; the frame loop early-returns too.
+  const world = phase === 'world';
   return (
     <Canvas
-      style={{ position: 'fixed', inset: 0, zIndex: 0, touchAction: 'none' }}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 1,
+        touchAction: 'none',
+        opacity: world ? 0 : 1,
+        pointerEvents: world ? 'none' : 'auto',
+        transition: 'opacity 1.5s ease 0.15s',
+      }}
       gl={{ alpha: false, antialias: false, powerPreference: 'high-performance', stencil: false }}
       dpr={[1, Math.min(1.5, dprCap(quality))]}
-      camera={{ position: [0, 5.4, 0], near: 0.1, far: 1500 }}
+      camera={{ position: [0, 0, 1], near: 0.1, far: 10 }}
       onCreated={({ gl }) => gl.setClearColor(0x05060b, 1)}
     >
-      {cityMounted && (
-        <Suspense fallback={null}>
-          <CityScene />
-        </Suspense>
-      )}
       <Ripple />
-      {quality !== 'low' && <Post reduced={reduced} />}
+      {quality !== 'low' && !world && <Post reduced={reduced} />}
     </Canvas>
   );
 }

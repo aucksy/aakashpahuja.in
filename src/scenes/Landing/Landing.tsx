@@ -4,6 +4,8 @@ import { audio } from '@/audio/AudioEngine';
 import EnterControls from './EnterControls';
 import NoWebGLFallback from '@/components/NoWebGLFallback';
 import Journey from '@/journey/Journey';
+import WorldBackdrop from '@/journey/WorldBackdrop';
+import AvatarIntro from '@/journey/AvatarIntro';
 
 // The 3D stack (three + r3f + postprocessing) is code-split and streamed in
 // after the initial shell paints — keeps first-load JS lean (§21).
@@ -44,6 +46,9 @@ export default function Landing() {
 
   return (
     <>
+      {/* z:0 — the cinematic world video (city / beach) behind everything */}
+      <WorldBackdrop />
+      {/* z:1 — the glass canvas; dissolves at world to reveal the video */}
       <Suspense fallback={<GlassLoader />}>
         <RippleGlass />
       </Suspense>
@@ -53,6 +58,8 @@ export default function Landing() {
           overture / dance / beat-sync for frame budget. The landing runs alone,
           exactly as it did before the journey existed. */}
       {phase === 'world' && <Journey />}
+      {/* the avatar walk-in → corner presence (world only, self-gated) */}
+      <AvatarIntro />
     </>
   );
 }

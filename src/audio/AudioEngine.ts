@@ -125,6 +125,8 @@ class AudioEngine {
   private freq: Uint8Array<ArrayBuffer> | null = null;
   private grid: BeatGrid | null = null;
   private startCtxTime = 0; // ctx.currentTime at source.start()
+  private loopStartS = 0; // seamless loop region, snapped to grid beats (§ user: ~2s → ~27s)
+  private loopEndS = 0;
 
   private bAvg = 0.001;
   private _level = 0;
@@ -187,6 +189,27 @@ class AudioEngine {
 
       // Never stop/restart the graph while playing; only build a source once.
       if (!this.source) {
+        // --- seamless loop region (user spec: play from ~00:02, wrap at ~00:27).
+        // Both points snapped to grid BEATS and the region forced to a whole
+        // number of 8-beat phrases, so the wrap lands mid-groove on a beat —
+        // sample-accurate, no click, no gap, musically invisible.
+        const dur = this.buffer.duration;
+        let ls = Math.min(2.0, dur * 0.1);
+        let le = Math.min(27.0, dur - 0.05);
+        const bg = this.grid;
+        if (bg?.period) {
+          const beat = (k: number) => bg.firstBeat + k * bg.period!;
+          const k1 = Math.max(0, Math.ceil((2.0 - bg.firstBeat) / bg.period));
+          ls = beat(k1);
+          const maxEnd = Math.min(27.3, dur - 0.05);
+          let n = Math.floor((maxEnd - ls) / bg.period / 8) * 8;
+          if (n < 8) n = Math.max(4, Math.floor((maxEnd - ls) / bg.period));
+          le = beat(k1 + n);
+        }
+        this.loopStartS = ls;
+        this.loopEndS = le;
+        console.info('[audio] seamless loop %ss → %ss (beat-snapped)', ls.toFixed(3), le.toFixed(3));
+
         // Remaining wait AFTER decode — if decode already ate the gather time,
         // start immediately; otherwise hold playback until the formation is set.
         const delay = opts?.notBeforeMs ? Math.max(0, (opts.notBeforeMs - performance.now()) / 1000) : 0;
@@ -194,10 +217,10 @@ class AudioEngine {
         this.source = this.ctx.createBufferSource();
         this.source.buffer = this.buffer;
         this.source.loop = true;
-        this.source.loopStart = 0;
-        this.source.loopEnd = this.buffer.duration;
+        this.source.loopStart = ls;
+        this.source.loopEnd = le;
         this.source.connect(this.analyser!);
-        this.source.start(startAt);
+        this.source.start(startAt, ls); // playback begins AT the loop region
         this.startCtxTime = startAt;
         // Gain reaches target exactly WHEN playback begins — no fade softening
         // beat 1 (the pre-roll silence is the fade; 50ms floor kills any click).
@@ -233,11 +256,16 @@ class AudioEngine {
 
   // ---- beat-grid clock -----------------------------------------------------
 
-  /** Seconds into the (looping) track — sample-clock accurate. Null until playing. */
+  /** Seconds into the (looping) track — sample-clock accurate. Null until
+   *  playing. Accounts for the beat-snapped loop region: playback starts AT
+   *  loopStart and wraps loopEnd → loopStart forever after. */
   getPlaybackTime(): number | null {
     if (!this.ctx || !this.playing || !this.buffer) return null;
     const t = this.ctx.currentTime - this.startCtxTime;
-    return t < 0 ? null : t % this.buffer.duration;
+    if (t < 0) return null;
+    const len = this.loopEndS - this.loopStartS;
+    if (len > 0) return this.loopStartS + (t % len);
+    return t % this.buffer.duration;
   }
 
   getGrid(): BeatGrid | null {

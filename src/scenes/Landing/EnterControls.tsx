@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useExperience } from '@/store/useExperience';
 import { audio } from '@/audio/AudioEngine';
 import { loadSignal, GATHER_SECONDS } from './loadSignal';
+import { startPreload, worldVideoUrl } from '@/lib/videoPreload';
 import WaveRing from './WaveRing';
 
 const mono: CSSProperties = {
@@ -88,6 +89,8 @@ export default function EnterControls() {
 
   const onEnter = async () => {
     enter();
+    // The loader preloads the cinematic world video; the burst waits for it.
+    startPreload(worldVideoUrl(useExperience.getState().theme));
     if (withMusic) {
       setAudioStarted(true);
       // Playback is SCHEDULED to begin only after the icons have finished
@@ -124,7 +127,7 @@ export default function EnterControls() {
   const centerKey = phase === 'overture' ? 'enter' : phase === 'loading' ? 'loading' : 'none';
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 2, pointerEvents: 'none' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 3, pointerEvents: 'none' }}>
       {/* Identity kicker */}
       <div style={{ position: 'absolute', top: 'clamp(18px,3vw,30px)', left: 'clamp(18px,3vw,30px)', ...mono, color: sceneMuted, transition: ease, display: 'flex', gap: 10, alignItems: 'center' }}>
         <span style={{ width: 8, height: 8, borderRadius: 2, background: sceneAccent, boxShadow: `0 0 12px ${sceneAccent}`, transition: ease }} />

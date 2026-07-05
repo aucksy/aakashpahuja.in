@@ -41,6 +41,7 @@ export const fragmentShader = /* glsl */ `
   uniform float u_age[${MAX}];
   uniform float u_amp[${MAX}];
   uniform float u_fade; // 1 = opaque glass overlay · 0 = dissolved into the 3D city
+  uniform float u_rest; // scene-through at rest — theme-tuned (dark hides more)
 
   float hgt(vec2 q) {
     float h = 0.0;
@@ -99,10 +100,11 @@ export const fragmentShader = /* glsl */ `
     c2.r = texture2D(u_tex, suv + grad * 0.012).r;
     c2.b = texture2D(u_tex, suv - grad * 0.012).b;
     col = mix(col, c2, 0.5);
-    // Frost opacity: heavily frosted at rest (78% frost — objects sensed, not
-    // seen), clearing to ~90% transparent along the wipe trail, then smoothly
-    // re-frosting as the trail decays.
-    col = mix(u_frost, col, mix(0.22, 0.92, cl));
+    // Frost opacity: heavily frosted at rest — the world is HIDDEN except where
+    // the cursor/finger wipes (~90% clear trail), then it re-frosts. u_rest is
+    // theme-tuned: dark frost is dark, so it needs a lower floor than light's
+    // milky white to conceal equally well.
+    col = mix(u_frost, col, mix(u_rest, 0.92, cl));
     float spec = pow(clamp(length(grad) * 8.0, 0.0, 1.0), 1.5);
     col += spec * 0.10 * cl;
     float vig = smoothstep(1.15, 0.25, distance(v_uv, vec2(0.5)));

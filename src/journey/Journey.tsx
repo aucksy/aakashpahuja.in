@@ -23,7 +23,7 @@ export default function Journey() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1.1, ease: [0.2, 0.7, 0.2, 1] }}
-          style={{ position: 'relative', zIndex: 1 }}
+          style={{ position: 'relative', zIndex: 2 }}
         >
           <main id="content" style={{ maxWidth: 1080, margin: '0 auto', padding: '0 clamp(22px,5vw,54px)' }}>
             <Hero />
