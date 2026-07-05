@@ -108,7 +108,10 @@ export default function Guitar() {
         </div>
       </Reveal>
 
-      <Reveal delay={0.12}>
+      {/* Sync the reel row with the strings card above it (it sits ~31% vh
+          lower, so the default trigger would slide it in on a separate scroll)
+          — reveal it together with the rest of the section. */}
+      <Reveal delay={0.12} margin="0px 0px -9% 0px">
         <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginTop: 28, alignItems: 'center' }}>
           {REELS.map((reel, i) => (
             <ReelTile key={reel.href} href={reel.href} cover={reel.cover} index={i} total={REELS.length} subject="guitar cover" accent="var(--magenta)" glowRgb="255,93,177" />

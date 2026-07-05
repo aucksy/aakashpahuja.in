@@ -88,8 +88,9 @@ export default function Fitness() {
         </div>
       </Reveal>
 
-      {/* progress toward a London bus */}
-      <Reveal delay={0.15}>
+      {/* progress toward a London bus — anchored to reveal with the equivalences
+          above (it sits ~13% vh lower) so the whole lower block arrives together */}
+      <Reveal delay={0.15} margin="0px 0px -27% 0px">
         <div style={{ maxWidth: 620, marginTop: 34 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-mono)', fontSize: 11.5, letterSpacing: '0.08em', color: 'var(--muted)', marginBottom: 8 }}>
             <span>{pct}% of the way to a London bus</span>
@@ -107,8 +108,10 @@ export default function Fitness() {
         </div>
       </Reveal>
 
-      {/* Workout reels + the Hevy pill — same square-tile row as Guitar & Singing */}
-      <Reveal delay={0.18}>
+      {/* Workout reels + the Hevy pill — same square-tile row as Guitar & Singing;
+          anchored (~20% vh below the equivalences) to arrive with the section
+          instead of sliding in on a further scroll */}
+      <Reveal delay={0.18} margin="0px 0px -20% 0px">
         <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginTop: 28, alignItems: 'center' }}>
           {REELS.map((reel, i) => (
             <ReelTile key={reel.href} href={reel.href} cover={reel.cover} index={i} total={REELS.length} subject="workout" accent="var(--coral)" glowRgb="255,138,91" />
