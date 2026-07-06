@@ -76,17 +76,18 @@ function Phone({ screens, accent, flip, flat }: { screens: string[]; accent: str
     // tilted like the desktop devices (not flat), so it reads as a real 3-D phone.
     width: flat ? 'clamp(177px,49vw,221px)' : 'clamp(190px,22vw,244px)',
     aspectRatio: '9 / 19.3',
-    borderRadius: 36,
-    padding: 9,
+    // Generic, near-bezel-less device (hairline frame, no notch) — not an iPhone.
+    borderRadius: 34,
+    padding: 3,
     background: 'linear-gradient(160deg,#1a1f30,#0a0d16)',
     border: '1px solid rgba(255,255,255,0.12)',
     boxShadow: `0 40px 90px -30px rgba(0,0,0,0.9), 0 0 60px -18px ${accent}, inset 0 1px 0 rgba(255,255,255,0.14)`,
-    transform: `perspective(1400px) rotateY(${flip ? 11 : -11}deg) rotateX(4deg)`,
+    transform: `perspective(1400px) rotateY(${flip ? 15 : -15}deg) rotateX(5deg)`,
     flex: 'none',
   };
   return (
     <div style={frame}>
-      <div style={{ position: 'relative', width: '100%', height: '100%', borderRadius: 28, overflow: 'hidden', background: '#05060b' }}>
+      <div style={{ position: 'relative', width: '100%', height: '100%', borderRadius: 31, overflow: 'hidden', background: '#05060b' }}>
         {screens.map((s, idx) => (
           <img
             key={s}
@@ -105,8 +106,6 @@ function Phone({ screens, accent, flip, flat }: { screens: string[]; accent: str
             }}
           />
         ))}
-        {/* notch */}
-        <div style={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', width: 74, height: 20, borderRadius: 12, background: 'rgba(5,6,11,0.9)' }} />
       </div>
     </div>
   );

@@ -23,7 +23,23 @@ const glassPanel: CSSProperties = {
   pointerEvents: 'auto',
 };
 
-// Mobile-only glyphs for the Dark/Light toggle — off-white solid (currentColor).
+// Mobile-only glyphs — off-white solid (currentColor).
+function SoundIcon({ on }: { on: boolean }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" stroke="none" />
+      {on ? (
+        <>
+          <path d="M16.5 8.5a5 5 0 0 1 0 7" />
+          <path d="M19.5 5.5a9 9 0 0 1 0 13" />
+        </>
+      ) : (
+        <path d="M16 9l5 6M21 9l-5 6" />
+      )}
+    </svg>
+  );
+}
+
 function MoonIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -206,12 +222,12 @@ export default function EnterControls() {
                     pointerEvents: 'auto',
                     fontFamily: 'var(--font-display)',
                     fontWeight: 600,
-                    fontSize: 'clamp(15px,2vw,19px)',
+                    fontSize: isMobile ? 'clamp(14px,3.6vw,16px)' : 'clamp(15px,2vw,19px)',
                     letterSpacing: '0.01em',
                     color: sceneInk,
                     background: light ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.07)',
                     border: `1px solid ${light ? 'rgba(42,34,51,0.28)' : 'rgba(255,255,255,0.22)'}`,
-                    padding: '16px 32px',
+                    padding: isMobile ? '12px 22px' : '16px 32px',
                     borderRadius: 999,
                     cursor: 'pointer',
                     backdropFilter: 'blur(12px)',
@@ -282,11 +298,11 @@ export default function EnterControls() {
           </AnimatePresence>
           <button
             onClick={() => setSliderOpen((v) => !v)}
-            aria-label="Sound settings"
+            aria-label={soundOn ? 'Sound on — tap to adjust volume' : 'Muted — tap to adjust volume'}
             aria-expanded={sliderOpen}
-            style={{ ...glassPanel, ...mono, color: 'var(--ink)', padding: '9px 16px', cursor: 'pointer' }}
+            style={{ ...glassPanel, display: 'grid', placeItems: 'center', width: 46, height: 46, padding: 0, color: 'var(--ink)', cursor: 'pointer' }}
           >
-            {soundOn ? '♪ sound on' : '♪ muted'}
+            <SoundIcon on={soundOn} />
           </button>
         </div>
       ) : (

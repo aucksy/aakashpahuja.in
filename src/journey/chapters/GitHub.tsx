@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import Chapter from '../Chapter';
 import { Kicker, Reveal, h2Style, leadStyle, glassCard } from '../ui';
 import { rafWhenVisible } from '../rafWhenVisible';
+import { useIsMobile } from '@/lib/useIsMobile';
 
 const GH = 'https://github.com/aucksy';
 const WEEKS = 52;
@@ -10,7 +11,7 @@ const DAYS = 7;
 /** The contribution graph reimagined as a drifting 3D-ish star-field (§12 SC-08).
  *  Intensities are a fixed pseudo-pattern (sample data) — wiring the live graph
  *  from github.com/aucksy is a GitHub-MCP enhancement (flagged in ASSETS_TODO). */
-function Constellation() {
+function Constellation({ mobile }: { mobile: boolean }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const cells = useMemo(() => {
     const out: number[] = [];
@@ -47,7 +48,9 @@ function Constellation() {
       ctx.clearRect(0, 0, W, H);
       const pad = 12;
       const cw = (W - pad * 2) / WEEKS;
-      const ch = Math.min(cw, (H - pad * 2) / DAYS);
+      // Phone: let the 7 rows use the FULL height so the field fills its card
+      // (desktop keeps square cells). Stars are nudged bigger to stay dense.
+      const ch = mobile ? (H - pad * 2) / DAYS : Math.min(cw, (H - pad * 2) / DAYS);
       const oy = (H - ch * DAYS) / 2;
       for (let x = 0; x < WEEKS; x++) {
         for (let y = 0; y < DAYS; y++) {
@@ -56,7 +59,7 @@ function Constellation() {
           const tw = 0.7 + 0.3 * Math.sin(t * 1.5 + x * 0.4 + y);
           const px = pad + x * cw + cw / 2;
           const py = oy + y * ch + ch / 2;
-          const r = (1.2 + v * 3.2) * tw;
+          const r = (1.2 + v * 3.2) * tw * (mobile ? 1.4 : 1);
           ctx.fillStyle = `rgba(93,229,224,${0.15 + v * 0.75 * tw})`;
           ctx.shadowColor = '#5de5e0';
           ctx.shadowBlur = v * 12 * tw;
@@ -74,10 +77,11 @@ function Constellation() {
     };
   }, [cells]);
 
-  return <canvas ref={ref} aria-hidden="true" style={{ width: '100%', height: 'clamp(160px,24vh,230px)', display: 'block' }} />;
+  return <canvas ref={ref} aria-hidden="true" style={{ width: '100%', height: mobile ? 'clamp(250px,44vh,420px)' : 'clamp(160px,24vh,230px)', display: 'block' }} />;
 }
 
 export default function GitHub() {
+  const isMobile = useIsMobile();
   return (
     <Chapter id="github" label="GitHub">
       <Kicker n="06" accent="var(--cyan)">
@@ -94,7 +98,7 @@ export default function GitHub() {
 
       <Reveal delay={0.08}>
         <div style={{ ...glassCard, padding: '22px 20px', overflow: 'hidden', position: 'relative' }}>
-          <Constellation />
+          <Constellation mobile={isMobile} />
           <div style={{ position: 'absolute', top: 12, right: 16, fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.4)' }}>
             sample · live graph via GitHub MCP
           </div>

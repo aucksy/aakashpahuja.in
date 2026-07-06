@@ -245,10 +245,17 @@ export class SceneBeneath {
       // `live` gates ALL continuous motion (ring breathing, bob, spin, FFT
       // scale) — 0 during gather/count-in so the beat jumps are the only move.
       const live = 1 - this.calm;
-      const ringR = (d.big ? 0.26 : 0.36) * (1 + burst * 3.4);
+      // Phones (tall/portrait canvas): push the ring OUT so icons clear the
+      // centre waveform, and stretch it vertically so they spread down the
+      // screen (§ user). Desktop (landscape) is byte-identical — same radii,
+      // no y-stretch. This is geometry only; the beat pops + spring speed are
+      // untouched, so the bounce-to-music sync is unchanged.
+      const portrait = this.sh > this.sw * 1.1;
+      const ringR = (d.big ? (portrait ? 0.34 : 0.26) : portrait ? 0.44 : 0.36) * (1 + burst * 3.4);
       const rr = base * ringR * (0.9 + 0.1 * Math.sin(time * 0.5 + d.ph) * live);
+      const yStretch = portrait ? Math.min(1.55, this.sh / this.sw) : 1;
       const tx = CX + Math.cos(d.ang) * rr * 1.12;
-      const ty = CY + Math.sin(d.ang) * rr;
+      const ty = CY + Math.sin(d.ang) * rr * yStretch;
       // Fast, hard-damped spring while gathering: formation completes in ~0.55s
       // and the ringing dies, leaving a true dead-still hold before beat 1.
       const k = s.gathering ? 0.14 : 0.024 + burst * 0.03;

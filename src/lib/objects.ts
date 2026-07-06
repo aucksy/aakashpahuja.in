@@ -28,6 +28,11 @@ const DEFS: ObjDef[] = [
   { type: 'dumbbell', hx: 0.5, hy: 0.34, scl: 0.78, neon: '#8b7bf7', candy: '#ffb14e' },
   { type: 'pizza', hx: 0.24, hy: 0.46, scl: 0.72, neon: '#e8c07d', candy: '#ffcf5a' },
   { type: 'guitar', hx: 0.9, hy: 0.83, scl: 0.8, neon: '#37d29b', candy: '#7c9bff' },
+  // +3 (~20% more) — same shape as the rest, so the dance treats them identically
+  // (every object pops on the count-in, big ones on bass). They only add density.
+  { type: 'mic', hx: 0.4, hy: 0.55, scl: 0.85, neon: '#5b8cff', candy: '#c07aff' },
+  { type: 'sneaker', hx: 0.62, hy: 0.67, scl: 0.92, neon: '#37d29b', candy: '#7c9bff' },
+  { type: 'mug', hx: 0.78, hy: 0.32, scl: 0.82, neon: '#ff8a5b', candy: '#ff9e6b' },
 ];
 
 export interface HiddenObject extends ObjDef {

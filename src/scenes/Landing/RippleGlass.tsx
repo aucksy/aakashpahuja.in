@@ -13,8 +13,8 @@ import { SceneBeneath } from './SceneBeneath';
 import { loadSignal } from './loadSignal';
 import { MAX, vertexShader, fragmentShader } from './rippleShader';
 
-const LOAD_DURATION = 5.0; // fallback loader length when no beat grid exists
-const PHRASE_BEATS = 8; // with a grid, the loader = two bars — ends ON a beat (§23)
+const LOAD_DURATION = 3.0; // fallback loader length when no beat grid exists (§ user −40%)
+const PHRASE_BEATS = 5; // loader ≈ 1¼ bars, still ends ON a beat (§ user −40%; count-in beats 1–3 unaffected)
 const BURST_DURATION = 1.25;
 const MIN_GATHER = 0.6; // ring must be fully formed before we accept a beat
 const MAX_WAIT = 2.6; // synthetic-pulse fallback (entered quietly)
@@ -143,7 +143,49 @@ function Ripple() {
     el.addEventListener('touchmove', onTouch, { passive: true });
     el.addEventListener('touchstart', onTouch, { passive: true });
     el.addEventListener('mouseleave', onLeave);
+
+    // #5 user: a one-time "you can play with this" hint. ~1s after load a short
+    // synthetic swipe emits ripple sources + a clear trail so the reveal reads as
+    // interactive. Overture only (well before any Enter/sync); skipped if the
+    // visitor already moved or prefers reduced motion; aborts the instant they
+    // enter. No readback / no decode — same array writes as a real pointer move.
+    let hintRaf = 0;
+    let hintT0 = 0;
+    let hintLast: [number, number] = [0.36, 0.44];
+    const hintFrom: [number, number] = [0.36, 0.44];
+    const hintTo: [number, number] = [0.64, 0.34];
+    const HINT_MS = 900;
+    const hintStep = () => {
+      if (useExperience.getState().phase !== 'overture') return; // entered — stop
+      const k = Math.min(1, (performance.now() - hintT0) / HINT_MS);
+      const e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2; // easeInOut
+      const uv: [number, number] = [
+        hintFrom[0] + (hintTo[0] - hintFrom[0]) * e,
+        hintFrom[1] + (hintTo[1] - hintFrom[1]) * e,
+      ];
+      const s = rt.current;
+      s.ptr = uv;
+      s.ptrOn = 1; // drives the clarity trail — the visible reveal
+      if (Math.hypot(uv[0] - hintLast[0], uv[1] - hintLast[1]) > 0.02) {
+        orig[s.head * 2] = uv[0];
+        orig[s.head * 2 + 1] = uv[1];
+        age[s.head] = 0;
+        amp[s.head] = 0.5;
+        s.head = (s.head + 1) % MAX;
+        hintLast = uv;
+      }
+      if (k < 1) hintRaf = requestAnimationFrame(hintStep);
+    };
+    const hintTimer = window.setTimeout(() => {
+      const st = useExperience.getState();
+      if (st.phase !== 'overture' || st.reducedMotion || rt.current.ptrOn > 0.01) return;
+      hintT0 = performance.now();
+      hintRaf = requestAnimationFrame(hintStep);
+    }, 1000);
+
     return () => {
+      window.clearTimeout(hintTimer);
+      cancelAnimationFrame(hintRaf);
       el.removeEventListener('mousemove', onMouse);
       el.removeEventListener('touchmove', onTouch);
       el.removeEventListener('touchstart', onTouch);
@@ -371,7 +413,10 @@ function Ripple() {
     uniforms.u_ptrOn.value = Math.min(1, s.ptrOn);
     uniforms.u_clear.value = s.clearPulse;
     const P = lerpPalette(s.themeMix);
-    (uniforms.u_frost.value as THREE.Vector3).set(P.frost[0], P.frost[1], P.frost[2]);
+    // #1 user: the DARK-mode glass reads ~30% darker (frost colour only; the
+    // cursor/finger wipe still reveals the scene at full strength). Light unchanged.
+    const fd = 1 - 0.3 * (1 - s.themeMix);
+    (uniforms.u_frost.value as THREE.Vector3).set(P.frost[0] * fd, P.frost[1] * fd, P.frost[2] * fd);
     // Dark frost conceals almost everything: ~4% scene-through at rest
     // (user-tuned −35%); the wipe (cl→0.92) is the only reveal.
     uniforms.u_rest.value = 0.04 + 0.18 * s.themeMix;
