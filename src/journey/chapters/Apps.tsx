@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import Chapter from '../Chapter';
-import { Kicker, Reveal } from '../ui';
+import { Reveal } from '../ui';
 import { useIsMobile } from '@/lib/useIsMobile';
 
 interface App {
@@ -115,11 +115,7 @@ export default function Apps() {
   const isMobile = useIsMobile();
   return (
     <Chapter id="apps" label="My Apps">
-      <Kicker n="02" accent="var(--emerald)">
-        Meet my Apps
-      </Kicker>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(56px,9vh,110px)', marginTop: 12 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(56px,9vh,110px)', marginTop: 0 }}>
         {APPS.map((app, idx) => {
           const flip = idx % 2 === 1;
           return (

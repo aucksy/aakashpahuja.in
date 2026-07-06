@@ -63,6 +63,8 @@ export class SceneBeneath {
   private ctx: CanvasRenderingContext2D;
   readonly objects: HiddenObject[] = createHiddenObjects();
   private dance: DanceState[];
+  // Deterministic blue-noise scatter (0..1 fractions) for the PHONE layout.
+  private readonly scatter: [number, number][];
   private sparks: Spark[] = [];
   private danceInit = false;
   /** 1 = hold dead-still (gather + count-in beats 1–3, so the beat jumps are the
@@ -95,7 +97,51 @@ export class SceneBeneath {
       ph: o.ph,
       spin: o.spin,
     }));
+    this.scatter = this.buildScatter(this.objects.length);
     this.resize(1280, 720);
+  }
+
+  /**
+   * A deterministic BLUE-NOISE scatter (Mitchell best-candidate sampling) for the
+   * phone layout: objects alternate between a band ABOVE and a band BELOW the
+   * centre waveform, and within each band each point is chosen as the farthest of
+   * 40 random darts from every prior point — a random, hand-placed look with no
+   * straight rows and no overlaps (§ user). Returns 0..1 canvas fractions.
+   */
+  private buildScatter(n: number): [number, number][] {
+    let s = 0x9e3779b9 >>> 0;
+    const rnd = () => {
+      s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+      return s / 4294967296;
+    };
+    const zones = [
+      { x0: 0.08, x1: 0.92, y0: 0.05, y1: 0.28 }, // above the waveform
+      { x0: 0.08, x1: 0.92, y0: 0.72, y1: 0.95 }, // below the waveform
+    ];
+    const ar = 2.0; // phone height/width — weight y so spacing is visual, not fractional
+    const pts: [number, number][] = [];
+    for (let i = 0; i < n; i++) {
+      const z = zones[i % 2];
+      let best: [number, number] = [z.x0, z.y0];
+      let bestD = -1;
+      for (let a = 0; a < 40; a++) {
+        const x = z.x0 + rnd() * (z.x1 - z.x0);
+        const y = z.y0 + rnd() * (z.y1 - z.y0);
+        let near = Infinity;
+        for (let j = 0; j < pts.length; j++) {
+          const dx = x - pts[j][0];
+          const dy = (y - pts[j][1]) * ar;
+          const d = dx * dx + dy * dy;
+          if (d < near) near = d;
+        }
+        if (near > bestD) {
+          bestD = near;
+          best = [x, y];
+        }
+      }
+      pts.push(best);
+    }
+    return pts;
   }
 
   resize(viewW: number, viewH: number): void {
@@ -250,34 +296,14 @@ export class SceneBeneath {
       let ty: number;
       if (portrait) {
         // PHONE (§ user): a ring can't fit around the big centre waveform on a
-        // narrow screen, so scatter the objects into two BANDS — above and below
-        // it — like a designer would: columns keep them apart horizontally, two
-        // y-lanes plus a DETERMINISTIC per-object jitter give an organic,
-        // hand-placed spread (not an army line), and they can never overlap. The
-        // burst blows them toward the vertical edges. Geometry only: onBeat, the
-        // count-in and the gather spring (k/damp) are untouched — sync + speed hold.
-        const N = this.objects.length;
-        const isTop = i % 2 === 0;
-        const gN = isTop ? Math.ceil(N / 2) : Math.floor(N / 2);
-        const gi = Math.floor(i / 2);
-        const perRow = Math.ceil(gN / 2);
-        const row = Math.floor(gi / perRow); // 0 or 1
-        const col = gi % perRow;
-        const inRow = Math.min(perRow, gN - row * perRow);
-        // deterministic pseudo-random — fixed per object, never a per-frame jitter
-        const rnd = (k: number) => {
-          const v = Math.sin(k * 12.9898 + 4.13) * 43758.5453;
-          return v - Math.floor(v);
-        };
-        // x: even columns, alternate row brick-shifted, plus a small jitter
-        const shift = row === 1 ? 0.5 / inRow : 0;
-        const fx = Math.min(0.995, Math.max(0.005, (col + 0.5) / inRow + shift));
-        const bx = this.sw * (0.1 + 0.8 * fx + (rnd(i * 2.7 + 1) - 0.5) * 0.05);
-        // y: each row keeps its own lane inside the 0.20-tall band, at a free
-        // jittered height — so it never reads as two straight rows.
-        const zoneTop = isTop ? 0.09 : 0.71;
-        const lane = row === 0 ? 0.02 : 0.52;
-        const by = this.sh * (zoneTop + (lane + rnd(i * 1.63 + 9) * 0.44) * 0.2);
+        // narrow screen. Use the precomputed BLUE-NOISE scatter (buildScatter) —
+        // two bands above/below the waveform, positions thrown so they read as
+        // random with no straight rows and no overlaps. The burst blows them to
+        // the vertical edges. Geometry only: onBeat, the count-in and the gather
+        // spring (k/damp) are untouched — the sync + re-arrange speed hold.
+        const p = this.scatter[i];
+        const bx = this.sw * p[0];
+        const by = this.sh * p[1];
         tx = CX + (bx - CX) * (1 + burst * 0.9);
         ty = CY + (by - CY) * (1 + burst * 2.0);
       } else {

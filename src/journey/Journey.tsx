@@ -21,10 +21,12 @@ function Separator({ word, gradient }: { word: string; gradient: string }) {
           style={{
             fontFamily: 'var(--font-display)',
             fontWeight: 700,
-            fontSize: 'clamp(52px,13vw,140px)',
-            lineHeight: 0.9,
-            letterSpacing: '-0.04em',
+            fontSize: 'clamp(40px,9vw,96px)',
+            lineHeight: 0.95,
+            letterSpacing: '-0.035em',
             textAlign: 'center',
+            maxWidth: '13ch',
+            textWrap: 'balance',
             background: gradient,
             WebkitBackgroundClip: 'text',
             backgroundClip: 'text',
@@ -57,8 +59,8 @@ export default function Journey() {
         >
           <main id="content" style={{ maxWidth: 1080, margin: '0 auto', padding: '0 clamp(22px,5vw,54px)' }}>
             <Hero />
-            {/* Work = the apps; Play = everything after. Big-word dividers. */}
-            <Separator word="Work" gradient="linear-gradient(100deg,var(--cyan),var(--violet) 55%,var(--magenta))" />
+            {/* "Meet my Apps" heads the work half; "Play" the rest. Big dividers. */}
+            <Separator word="Meet my Apps" gradient="linear-gradient(100deg,var(--cyan),var(--violet) 55%,var(--magenta))" />
             <Apps />
             <Separator word="Play" gradient="linear-gradient(100deg,var(--gold),var(--coral),var(--magenta))" />
             <Fitness />

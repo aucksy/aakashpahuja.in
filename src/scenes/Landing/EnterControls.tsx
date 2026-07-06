@@ -170,8 +170,10 @@ export default function EnterControls() {
     // Icon toggle (mobile): shell-less off-white glyphs — active is full opacity,
     // inactive dims. Text toggle (desktop): white active pill.
     background: icon ? 'transparent' : active ? 'rgba(255,255,255,0.92)' : 'transparent',
-    color: icon ? (light ? ICON_GREY : OFFWHITE) : active ? '#06070d' : 'var(--muted)',
-    opacity: icon && !active ? 0.38 : 1,
+    // Icon toggle: dark world → off-white (active bright, inactive dim). Light
+    // world → the SELECTED icon goes dark so it reads as selected; the other stays grey.
+    color: icon ? (light ? (active ? '#241a30' : ICON_GREY) : OFFWHITE) : active ? '#06070d' : 'var(--muted)',
+    opacity: icon ? (active ? 1 : light ? 0.6 : 0.38) : 1,
   });
 
   // The hero + chapters live in the Journey now; the overture HUD only owns the

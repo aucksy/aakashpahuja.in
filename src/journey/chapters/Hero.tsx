@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import Chapter from '../Chapter';
 import { Reveal } from '../ui';
 import { useIsMobile } from '@/lib/useIsMobile';
+import { useExperience } from '@/store/useExperience';
 
 const EASE = [0.2, 0.7, 0.2, 1] as const;
 
@@ -48,6 +49,7 @@ function Words({
  *  walk-in (AvatarIntro) plays over this beat and settles bottom-left. */
 export default function Hero() {
   const isMobile = useIsMobile();
+  const light = useExperience((s) => s.theme) === 'light';
   const bigStyle: React.CSSProperties = {
     fontFamily: 'var(--font-display)',
     fontWeight: 700,
@@ -72,7 +74,9 @@ export default function Hero() {
       {isMobile ? (
         <div style={{ position: 'absolute', top: 'clamp(16px,6vh,54px)', left: 0, right: 0, textAlign: 'center', pointerEvents: 'none' }}>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'clamp(21px,6.4vw,30px)', letterSpacing: '-0.01em', color: 'var(--ink)' }}>Aakash Pahuja</div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--cyan)', marginTop: 6 }}>Digital Product Designer</div>
+          {/* light world: black (accent teal is too faint on the sand); dark: unchanged */}
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', color: light ? '#191320' : 'var(--cyan)', marginTop: 6 }}>Digital Product Designer</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: light ? '#191320' : 'var(--muted)', marginTop: 4 }}>Vibe Coder</div>
         </div>
       ) : (
         <Reveal immediate>
@@ -90,7 +94,7 @@ export default function Hero() {
       <Reveal delay={0.6} immediate>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 46, fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--muted)' }}>
           <motion.span animate={{ y: [0, 6, 0] }} transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}>
-            Travel the road
+            Travel the path
           </motion.span>
           <span style={{ fontSize: 16 }}>↓</span>
         </div>
