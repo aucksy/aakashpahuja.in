@@ -341,7 +341,7 @@ class AudioEngine {
       if (!this.source) {
         // --- seamless loop region (user spec: FIRST playback runs untouched
         // from 00:00 — the landing count-in owns the track's opening beats —
-        // then the wrap at ~00:28 drops back into ~00:02 and loops forever).
+        // then the wrap at ~00:28 drops back into ~00:02 and loops once more, stops).
         // Points are chosen by pickLoopRegion: beat-aligned, bar-phase-safe,
         // and seam-scored against the actual PCM for an inaudible splice.
         const dur = this.buffer.duration;
@@ -387,6 +387,22 @@ class AudioEngine {
         g.cancelScheduledValues(now);
         g.setValueAtTime(0.0001, now);
         g.linearRampToValueAtTime(Math.max(0.0001, volume), Math.max(startAt, now + 0.05));
+
+        // § user: play the intro once, loop the region exactly ONE more time,
+        // then STOP — no forever-loop. The stop lands on loopEnd (a downbeat /
+        // bar-end): 0->le (intro) then ls->le (one loop) = startAt + 2*le - ls.
+        // A short release ramp keeps the ending from clicking. Only the TAIL is
+        // touched — startAt, the beat grid, and the count-in fade above are
+        // untouched, so the icon-bounce sync is unchanged.
+        if (le > ls) {
+          const endAt = startAt + 2 * le - ls;
+          g.setValueAtTime(Math.max(0.0001, volume), Math.max(now, endAt - 0.22));
+          g.linearRampToValueAtTime(0.0001, endAt);
+          this.source.stop(endAt);
+          this.source.onended = () => {
+            this.playing = false;
+          };
+        }
       } else {
         this.fade(volume, 0.5);
       }

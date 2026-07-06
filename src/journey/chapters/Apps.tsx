@@ -72,16 +72,16 @@ function Phone({ screens, accent, flip, flat }: { screens: string[]; accent: str
 
   const frame: CSSProperties = {
     position: 'relative',
-    // On phones the phone stands nearly flat and a touch larger — it's centred
-    // below the copy, so it reads as a hero, not a tilted thumbnail in a column.
-    width: flat ? 'clamp(208px,58vw,260px)' : 'clamp(190px,22vw,244px)',
+    // On phones it's centred below the copy — ~15% smaller than before and
+    // tilted like the desktop devices (not flat), so it reads as a real 3-D phone.
+    width: flat ? 'clamp(177px,49vw,221px)' : 'clamp(190px,22vw,244px)',
     aspectRatio: '9 / 19.3',
     borderRadius: 36,
     padding: 9,
     background: 'linear-gradient(160deg,#1a1f30,#0a0d16)',
     border: '1px solid rgba(255,255,255,0.12)',
     boxShadow: `0 40px 90px -30px rgba(0,0,0,0.9), 0 0 60px -18px ${accent}, inset 0 1px 0 rgba(255,255,255,0.14)`,
-    transform: flat ? 'perspective(1400px) rotateX(2deg)' : `perspective(1400px) rotateY(${flip ? 11 : -11}deg) rotateX(4deg)`,
+    transform: `perspective(1400px) rotateY(${flip ? 11 : -11}deg) rotateX(4deg)`,
     flex: 'none',
   };
   return (

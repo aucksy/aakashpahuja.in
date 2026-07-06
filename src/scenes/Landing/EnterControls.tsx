@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useExperience } from '@/store/useExperience';
 import { audio } from '@/audio/AudioEngine';
@@ -23,24 +23,7 @@ const glassPanel: CSSProperties = {
   pointerEvents: 'auto',
 };
 
-// Mobile-only glyphs for the icon toggles. All draw with currentColor so they
-// inherit the button's ink (active = dark on white, inactive = --muted).
-function SoundIcon({ muted }: { muted: boolean }) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" stroke="none" />
-      {muted ? (
-        <path d="M16 9l5 6M21 9l-5 6" />
-      ) : (
-        <>
-          <path d="M16.5 8.5a5 5 0 0 1 0 7" />
-          <path d="M19.5 5.5a9 9 0 0 1 0 13" />
-        </>
-      )}
-    </svg>
-  );
-}
-
+// Mobile-only glyphs for the Dark/Light toggle — off-white solid (currentColor).
 function MoonIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -108,6 +91,9 @@ export default function EnterControls() {
   const setAudioStarted = useExperience((s) => s.setAudioStarted);
   const toggleMute = useExperience((s) => s.toggleMute);
   const isMobile = useIsMobile();
+  // Mobile: the volume dial is tucked behind the sound button and slides up on tap.
+  const [sliderOpen, setSliderOpen] = useState(false);
+  const soundOn = !muted && volume > 0.02;
 
   useEffect(() => {
     if (audioStarted) audio.setVolume(volume, muted);
@@ -151,16 +137,19 @@ export default function EnterControls() {
   const segBtn = (active: boolean, icon = false): CSSProperties => ({
     ...mono,
     padding: icon ? 0 : '7px 15px',
-    width: icon ? 38 : undefined,
-    height: icon ? 38 : undefined,
+    width: icon ? 34 : undefined,
+    height: icon ? 34 : undefined,
     display: icon ? 'grid' : undefined,
     placeItems: icon ? 'center' : undefined,
     border: 0,
     borderRadius: 999,
     cursor: 'pointer',
-    transition: 'background .3s, color .3s',
-    background: active ? 'rgba(255,255,255,0.92)' : 'transparent',
-    color: active ? '#06070d' : 'var(--muted)',
+    transition: 'background .3s, color .3s, opacity .3s',
+    // Icon toggle (mobile): off-white glyphs; active gets a soft glass highlight
+    // + full opacity, inactive dims. Text toggle (desktop): white active pill.
+    background: icon ? (active ? 'rgba(255,255,255,0.16)' : 'transparent') : active ? 'rgba(255,255,255,0.92)' : 'transparent',
+    color: icon ? 'var(--ink)' : active ? '#06070d' : 'var(--muted)',
+    opacity: icon && !active ? 0.42 : 1,
   });
 
   // The hero + chapters live in the Journey now; the overture HUD only owns the
@@ -176,23 +165,19 @@ export default function EnterControls() {
         Aakash Pahuja · Digital Product Manager / Designer
       </div>
 
-      {/* Persistent mute — desktop: text pill, top-right. Mobile: icon-only,
-          bottom-left (where the volume dial used to sit). */}
+      {/* Persistent mute — desktop only (top-right). On mobile the bottom-left
+          sound button owns sound (it reveals the volume dial). */}
       <AnimatePresence>
-        {audioStarted && (
+        {!isMobile && audioStarted && (
           <motion.button
-            initial={{ opacity: 0, y: isMobile ? 8 : -8 }}
+            initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             onClick={toggleMute}
             aria-label={muted ? 'Unmute music' : 'Mute music'}
-            style={
-              isMobile
-                ? { position: 'absolute', left: 'clamp(16px,3vw,28px)', bottom: 'clamp(16px,3vw,28px)', ...glassPanel, display: 'grid', placeItems: 'center', width: 46, height: 46, padding: 0, color: 'var(--ink)', cursor: 'pointer' }
-                : { position: 'absolute', top: 'clamp(16px,3vw,28px)', right: 'clamp(16px,3vw,28px)', ...glassPanel, ...mono, color: 'var(--ink)', padding: '9px 16px', cursor: 'pointer' }
-            }
+            style={{ position: 'absolute', top: 'clamp(16px,3vw,28px)', right: 'clamp(16px,3vw,28px)', ...glassPanel, ...mono, color: 'var(--ink)', padding: '9px 16px', cursor: 'pointer' }}
           >
-            {isMobile ? <SoundIcon muted={muted} /> : muted ? '♪ muted' : '♪ sound on'}
+            {muted ? '♪ muted' : '♪ sound on'}
           </motion.button>
         )}
       </AnimatePresence>
@@ -267,9 +252,44 @@ export default function EnterControls() {
         </AnimatePresence>
       </div>
 
-      {/* Volume / intensity dial — desktop only. Phones drop it entirely and use
-          the icon sound toggle (bottom-left) for a simple on/off instead. */}
-      {!isMobile && (
+      {/* Sound / volume. Desktop: the dial sits open at bottom-left. Mobile: a
+          persistent "sound" button (from the overture on) reveals the SAME dial
+          on tap — it drives the waveform + audio exactly as before. */}
+      {isMobile ? (
+        <div style={{ position: 'absolute', left: 'clamp(16px,3vw,28px)', bottom: 'clamp(16px,3vw,28px)', display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start', pointerEvents: 'auto' }}>
+          <AnimatePresence>
+            {sliderOpen && (
+              <motion.div
+                key="dial"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 12 }}
+                transition={{ duration: 0.34, ease: [0.2, 0.7, 0.2, 1] as const }}
+                style={{ display: 'flex', flexDirection: 'column', gap: 8, ...glassPanel, borderRadius: 18, padding: '12px 16px' }}
+              >
+                <span style={{ ...mono, fontSize: 9.5, color: 'var(--muted)' }}>Volume · intensity</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={Math.round(volume * 100)}
+                  aria-label="Volume and intensity"
+                  onChange={(e) => onVolume(Number(e.target.value) / 100)}
+                  style={{ width: 160, '--accent': 'var(--cyan)' } as CSSProperties}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <button
+            onClick={() => setSliderOpen((v) => !v)}
+            aria-label="Sound settings"
+            aria-expanded={sliderOpen}
+            style={{ ...glassPanel, ...mono, color: 'var(--ink)', padding: '9px 16px', cursor: 'pointer' }}
+          >
+            {soundOn ? '♪ sound on' : '♪ muted'}
+          </button>
+        </div>
+      ) : (
         <div style={{ position: 'absolute', left: 'clamp(18px,3vw,30px)', bottom: 'clamp(18px,3vw,28px)', display: 'flex', flexDirection: 'column', gap: 6, pointerEvents: 'auto' }}>
           <span style={{ ...mono, fontSize: 9.5, color: sceneFaint, transition: ease }}>Volume · intensity</span>
           <input
@@ -285,10 +305,10 @@ export default function EnterControls() {
       )}
 
       {/* Dark / Light world toggle — desktop: horizontal text segments with a
-          label. Mobile: vertical, icon-only (moon / sun), no label. */}
+          label. Mobile: horizontal, compact, icon-only (moon / sun), no label. */}
       <div style={{ position: 'absolute', right: 'clamp(18px,3vw,30px)', bottom: 'clamp(18px,3vw,28px)', display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end', pointerEvents: 'auto' }}>
         {!isMobile && <span style={{ ...mono, fontSize: 9.5, color: sceneFaint, transition: ease }}>World</span>}
-        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 3, padding: 4, ...glassPanel }}>
+        <div style={{ display: 'flex', flexDirection: 'row', gap: 3, padding: isMobile ? 3 : 4, ...glassPanel }}>
           <button style={segBtn(theme === 'dark', isMobile)} onClick={() => setTheme('dark')} aria-pressed={theme === 'dark'} aria-label="Dark world">
             {isMobile ? <MoonIcon /> : 'Dark'}
           </button>
