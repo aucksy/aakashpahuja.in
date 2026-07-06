@@ -59,7 +59,7 @@ function Constellation({ mobile }: { mobile: boolean }) {
           const tw = 0.7 + 0.3 * Math.sin(t * 1.5 + x * 0.4 + y);
           const px = pad + x * cw + cw / 2;
           const py = oy + y * ch + ch / 2;
-          const r = (1.2 + v * 3.2) * tw * (mobile ? 1.4 : 1);
+          const r = (1.2 + v * 3.2) * tw * (mobile ? 1.15 : 1);
           ctx.fillStyle = `rgba(93,229,224,${0.15 + v * 0.75 * tw})`;
           ctx.shadowColor = '#5de5e0';
           ctx.shadowBlur = v * 12 * tw;
@@ -77,7 +77,7 @@ function Constellation({ mobile }: { mobile: boolean }) {
     };
   }, [cells]);
 
-  return <canvas ref={ref} aria-hidden="true" style={{ width: '100%', height: mobile ? 'clamp(250px,44vh,420px)' : 'clamp(160px,24vh,230px)', display: 'block' }} />;
+  return <canvas ref={ref} aria-hidden="true" style={{ width: '100%', height: mobile ? 'clamp(150px,26vh,200px)' : 'clamp(160px,24vh,230px)', display: 'block' }} />;
 }
 
 export default function GitHub() {

@@ -151,9 +151,12 @@ function Ripple() {
     // enter. No readback / no decode — same array writes as a real pointer move.
     let hintRaf = 0;
     let hintT0 = 0;
-    let hintLast: [number, number] = [0.36, 0.44];
-    const hintFrom: [number, number] = [0.36, 0.44];
-    const hintTo: [number, number] = [0.64, 0.34];
+    const hintPhone = window.matchMedia('(max-width: 760px)').matches;
+    // Phone (§ user): a smaller, LOWER swipe — down where the Enter copy sat.
+    // Desktop: the upper-centre swipe.
+    const hintFrom: [number, number] = hintPhone ? [0.45, 0.72] : [0.36, 0.44];
+    const hintTo: [number, number] = hintPhone ? [0.57, 0.72] : [0.64, 0.34];
+    let hintLast: [number, number] = [hintFrom[0], hintFrom[1]];
     const HINT_MS = 900;
     const hintStep = () => {
       if (useExperience.getState().phase !== 'overture') return; // entered — stop
@@ -417,9 +420,9 @@ function Ripple() {
     // cursor/finger wipe still reveals the scene at full strength). Light unchanged.
     const fd = 1 - 0.3 * (1 - s.themeMix);
     (uniforms.u_frost.value as THREE.Vector3).set(P.frost[0] * fd, P.frost[1] * fd, P.frost[2] * fd);
-    // Dark frost conceals almost everything: ~4% scene-through at rest
-    // (user-tuned −35%); the wipe (cl→0.92) is the only reveal.
-    uniforms.u_rest.value = 0.04 + 0.18 * s.themeMix;
+    // Dark frost conceals almost everything: ~3% scene-through at rest (user
+    // −25% again, to hide the hidden objects better); the wipe (cl→0.92) reveals.
+    uniforms.u_rest.value = 0.03 + 0.19 * s.themeMix;
     (uniforms.u_res.value as THREE.Vector2).set(gl.domElement.width, gl.domElement.height);
   });
 

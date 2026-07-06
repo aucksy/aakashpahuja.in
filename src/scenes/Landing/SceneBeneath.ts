@@ -245,17 +245,37 @@ export class SceneBeneath {
       // `live` gates ALL continuous motion (ring breathing, bob, spin, FFT
       // scale) — 0 during gather/count-in so the beat jumps are the only move.
       const live = 1 - this.calm;
-      // Phones (tall/portrait canvas): push the ring OUT so icons clear the
-      // centre waveform, and stretch it vertically so they spread down the
-      // screen (§ user). Desktop (landscape) is byte-identical — same radii,
-      // no y-stretch. This is geometry only; the beat pops + spring speed are
-      // untouched, so the bounce-to-music sync is unchanged.
       const portrait = this.sh > this.sw * 1.1;
-      const ringR = (d.big ? (portrait ? 0.34 : 0.26) : portrait ? 0.44 : 0.36) * (1 + burst * 3.4);
-      const rr = base * ringR * (0.9 + 0.1 * Math.sin(time * 0.5 + d.ph) * live);
-      const yStretch = portrait ? Math.min(1.55, this.sh / this.sw) : 1;
-      const tx = CX + Math.cos(d.ang) * rr * 1.12;
-      const ty = CY + Math.sin(d.ang) * rr * yStretch;
+      let tx: number;
+      let ty: number;
+      if (portrait) {
+        // PHONE (§ user): a ring can't fit around the big centre waveform on a
+        // narrow screen, so lay the objects in two horizontal BANDS — above and
+        // below the waveform — spread across the width, two rows each. That
+        // clears the waveform AND guarantees no overlaps; the burst blows them
+        // toward the vertical edges. Geometry only: the beat pops, onBeat and the
+        // gather spring (k/damp) are untouched, so sync + re-arrange speed hold.
+        const N = this.objects.length;
+        const isTop = i % 2 === 0;
+        const gN = isTop ? Math.ceil(N / 2) : Math.floor(N / 2);
+        const gi = Math.floor(i / 2);
+        const rows = gN > 4 ? 2 : 1;
+        const perRow = Math.ceil(gN / rows);
+        const row = Math.floor(gi / perRow);
+        const col = gi % perRow;
+        const inRow = Math.min(perRow, gN - row * perRow);
+        const fx = (col + 0.5) / inRow;
+        const bx = this.sw * (0.12 + 0.76 * fx);
+        const yBand = isTop ? (row === 0 ? 0.12 : 0.27) : row === 0 ? 0.88 : 0.73;
+        const by = this.sh * yBand + Math.sin(fx * Math.PI) * this.sh * 0.012 * (isTop ? -1 : 1);
+        tx = CX + (bx - CX) * (1 + burst * 0.9);
+        ty = CY + (by - CY) * (1 + burst * 2.0);
+      } else {
+        const ringR = (d.big ? 0.26 : 0.36) * (1 + burst * 3.4);
+        const rr = base * ringR * (0.9 + 0.1 * Math.sin(time * 0.5 + d.ph) * live);
+        tx = CX + Math.cos(d.ang) * rr * 1.12;
+        ty = CY + Math.sin(d.ang) * rr;
+      }
       // Fast, hard-damped spring while gathering: formation completes in ~0.55s
       // and the ringing dies, leaving a true dead-still hold before beat 1.
       const k = s.gathering ? 0.14 : 0.024 + burst * 0.03;

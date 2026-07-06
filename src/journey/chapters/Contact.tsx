@@ -2,7 +2,7 @@ import Chapter from '../Chapter';
 import { Reveal } from '../ui';
 
 const LINKS = [
-  { label: 'Email', value: 'aakashpahuja1990@gmail.com', href: 'mailto:aakashpahuja1990@gmail.com', accent: 'var(--cyan)' },
+  { label: 'Email', value: 'contact@aakashpahuja.in', href: 'mailto:contact@aakashpahuja.in', accent: 'var(--cyan)' },
   { label: 'GitHub', value: 'github.com/aucksy', href: 'https://github.com/aucksy', accent: 'var(--violet)' },
   { label: 'Instagram', value: '@aakashpahuja108', href: 'https://instagram.com/aakashpahuja108', accent: 'var(--magenta)' },
   { label: 'Hevy', value: 'hevy.com/user/aucksy', href: 'https://hevy.com/user/aucksy', accent: 'var(--coral)' },

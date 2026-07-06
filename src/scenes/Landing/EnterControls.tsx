@@ -23,6 +23,10 @@ const glassPanel: CSSProperties = {
   pointerEvents: 'auto',
 };
 
+// Soft off-white for the shell-less landing icons — clear on the dark scene and,
+// with a drop-shadow, still legible over the bright light world.
+const OFFWHITE = '#c4ccdb';
+
 // Mobile-only glyphs — off-white solid (currentColor).
 function SoundIcon({ on }: { on: boolean }) {
   return (
@@ -153,19 +157,20 @@ export default function EnterControls() {
   const segBtn = (active: boolean, icon = false): CSSProperties => ({
     ...mono,
     padding: icon ? 0 : '7px 15px',
-    width: icon ? 34 : undefined,
-    height: icon ? 34 : undefined,
+    width: icon ? 38 : undefined,
+    height: icon ? 38 : undefined,
     display: icon ? 'grid' : undefined,
     placeItems: icon ? 'center' : undefined,
     border: 0,
     borderRadius: 999,
     cursor: 'pointer',
+    pointerEvents: 'auto',
     transition: 'background .3s, color .3s, opacity .3s',
-    // Icon toggle (mobile): off-white glyphs; active gets a soft glass highlight
-    // + full opacity, inactive dims. Text toggle (desktop): white active pill.
-    background: icon ? (active ? 'rgba(255,255,255,0.16)' : 'transparent') : active ? 'rgba(255,255,255,0.92)' : 'transparent',
-    color: icon ? 'var(--ink)' : active ? '#06070d' : 'var(--muted)',
-    opacity: icon && !active ? 0.42 : 1,
+    // Icon toggle (mobile): shell-less off-white glyphs — active is full opacity,
+    // inactive dims. Text toggle (desktop): white active pill.
+    background: icon ? 'transparent' : active ? 'rgba(255,255,255,0.92)' : 'transparent',
+    color: icon ? OFFWHITE : active ? '#06070d' : 'var(--muted)',
+    opacity: icon && !active ? 0.38 : 1,
   });
 
   // The hero + chapters live in the Journey now; the overture HUD only owns the
@@ -241,9 +246,6 @@ export default function EnterControls() {
                   {withMusic ? 'Enter with music' : 'Enter quietly'}
                 </motion.button>
               </div>
-              <div style={{ ...mono, color: sceneFaint, transition: ease, textShadow: light ? 'none' : '0 2px 12px #000', textAlign: 'center' }}>
-                Wipe the glass to reveal · press Enter to begin
-              </div>
               {firstVisit && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }} style={{ ...mono, fontSize: 10, color: sceneAccent, transition: ease, letterSpacing: '0.16em' }}>
                   ♪ sound is part of this experience
@@ -300,7 +302,7 @@ export default function EnterControls() {
             onClick={() => setSliderOpen((v) => !v)}
             aria-label={soundOn ? 'Sound on — tap to adjust volume' : 'Muted — tap to adjust volume'}
             aria-expanded={sliderOpen}
-            style={{ ...glassPanel, display: 'grid', placeItems: 'center', width: 46, height: 46, padding: 0, color: 'var(--ink)', cursor: 'pointer' }}
+            style={{ background: 'transparent', border: 0, display: 'grid', placeItems: 'center', width: 44, height: 44, padding: 0, color: OFFWHITE, cursor: 'pointer', filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.7))' }}
           >
             <SoundIcon on={soundOn} />
           </button>
@@ -324,7 +326,7 @@ export default function EnterControls() {
           label. Mobile: horizontal, compact, icon-only (moon / sun), no label. */}
       <div style={{ position: 'absolute', right: 'clamp(18px,3vw,30px)', bottom: 'clamp(18px,3vw,28px)', display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end', pointerEvents: 'auto' }}>
         {!isMobile && <span style={{ ...mono, fontSize: 9.5, color: sceneFaint, transition: ease }}>World</span>}
-        <div style={{ display: 'flex', flexDirection: 'row', gap: 3, padding: isMobile ? 3 : 4, ...glassPanel }}>
+        <div style={isMobile ? { display: 'flex', flexDirection: 'row', gap: 12, filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.7))' } : { display: 'flex', flexDirection: 'row', gap: 3, padding: 4, ...glassPanel }}>
           <button style={segBtn(theme === 'dark', isMobile)} onClick={() => setTheme('dark')} aria-pressed={theme === 'dark'} aria-label="Dark world">
             {isMobile ? <MoonIcon /> : 'Dark'}
           </button>

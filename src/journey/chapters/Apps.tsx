@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import Chapter from '../Chapter';
-import { Kicker, Reveal, h2Style, leadStyle } from '../ui';
+import { Kicker, Reveal } from '../ui';
 import { useIsMobile } from '@/lib/useIsMobile';
 
 interface App {
@@ -16,8 +16,8 @@ const APPS: App[] = [
   {
     name: 'Spends',
     accent: 'var(--spends)',
-    tag: 'Offline-first, privacy-first expense tracker',
-    desc: 'Kotlin / Compose, Material 3. Money stored as integer paise, entirely on-device — nothing leaves the phone. The signature feature: near-frictionless capture straight from bank SMS and UPI notifications.',
+    tag: 'Remaining-salary tracker for credit-card users',
+    desc: "A remaining-salary tracker built for credit-card users. It reads spends straight from your bank SMS, adds recurring payments on autopilot, splits a single transaction across categories, and backs up to Google Drive — so what's actually left is always one glance away.",
     icon: '/assets/icon-spends.png',
     screens: ['/assets/spends-splash.jpg', '/assets/spends-home.jpg', '/assets/spends-analytics.jpg', '/assets/spends-recurring.jpg'],
   },
@@ -116,18 +116,10 @@ export default function Apps() {
   return (
     <Chapter id="apps" label="My Apps">
       <Kicker n="02" accent="var(--emerald)">
-        My Apps
+        Meet my Apps
       </Kicker>
-      <Reveal>
-        <h2 style={{ ...h2Style, maxWidth: '18ch' }}>Six apps that leap into your hands.</h2>
-      </Reveal>
-      <Reveal delay={0.05}>
-        <p style={{ ...leadStyle, marginBottom: 20 }}>
-          Android, privacy-first — each with its own accent hue. Four run entirely on-device; the two AI apps put you in control, bring-your-own-key.
-        </p>
-      </Reveal>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(56px,9vh,110px)', marginTop: 40 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'clamp(56px,9vh,110px)', marginTop: 12 }}>
         {APPS.map((app, idx) => {
           const flip = idx % 2 === 1;
           return (
