@@ -13,8 +13,8 @@ import { SceneBeneath } from './SceneBeneath';
 import { loadSignal } from './loadSignal';
 import { MAX, vertexShader, fragmentShader } from './rippleShader';
 
-const LOAD_DURATION = 3.0; // fallback loader length when no beat grid exists (§ user −40%)
-const PHRASE_BEATS = 5; // loader ≈ 1¼ bars, still ends ON a beat (§ user −40%; count-in beats 1–3 unaffected)
+const LOAD_DURATION = 3.3; // fallback loader length (§ user: −40%, then +10% slower)
+const PHRASE_BEATS = 5.5; // loader length (§ user: +10% slower; count-in beats 1–3 unaffected)
 const BURST_DURATION = 1.25;
 const MIN_GATHER = 0.6; // ring must be fully formed before we accept a beat
 const MAX_WAIT = 2.6; // synthetic-pulse fallback (entered quietly)
