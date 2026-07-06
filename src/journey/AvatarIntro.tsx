@@ -6,8 +6,8 @@ import { loadSignal } from '@/scenes/Landing/loadSignal';
 /**
  * The avatar (final form): fades in walking at the BOTTOM-RIGHT — behind the
  * Dark/Light toggle — while the 0→100 loading runs, resolves into his
- * folded-hands pose, and stays there for the whole journey. Desktop: head at
- * ~half the screen. Phones: smaller.
+ * folded-hands pose, and stays there for the whole journey. Desktop only —
+ * on phones (≤760px) he's hidden entirely, landing and journey alike.
  *
  * SMOOTH *and* SYNC-SAFE — the lesson of three iterations:
  *   · v2 keyed with canvas getImageData per frame → GPU-pipeline READBACK
@@ -130,7 +130,7 @@ export default function AvatarIntro() {
   const active = phase !== 'overture' && countInDone;
 
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 880px)');
+    const mq = window.matchMedia('(max-width: 760px)');
     const apply = () => setMobile(mq.matches);
     apply();
     mq.addEventListener('change', apply);
@@ -140,6 +140,14 @@ export default function AvatarIntro() {
   useEffect(() => {
     if (!active || started.current) return;
     started.current = true;
+    // Phones: no avatar anywhere (landing OR journey). Release the loader gate
+    // exactly as the asset-absent fallback does and run nothing else — the
+    // count-in and burst stay byte-identical to a missing-avatar load, and the
+    // walk clip is never fetched (the <video> isn't rendered on mobile below).
+    if (mobile) {
+      loadSignal.avatarProgress = 1;
+      return;
+    }
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const keyer = canvas ? initKeyer(canvas) : null;
@@ -224,7 +232,12 @@ export default function AvatarIntro() {
       video.removeEventListener('pause', onPause);
       cancelAnimationFrame(rafRef.current);
     };
-  }, [active, reduced]);
+  }, [active, reduced, mobile]);
+
+  // Phones render nothing at all — not even the hidden <video>, so the walk clip
+  // isn't fetched — and the loader gate was already released in the effect above.
+  // Desktop keeps the corner presence for the whole journey (unchanged).
+  if (mobile) return null;
 
   return (
     <>
@@ -243,8 +256,8 @@ export default function AvatarIntro() {
             // (z 2) and the HUD (z 3) — behind the toggle, never blocks it.
             zIndex: 1,
             pointerEvents: 'none',
-            // Desktop: head reaches ~half the screen. Phones: smaller.
-            height: mobile ? '32vh' : 'min(56vh, 660px)',
+            // Desktop: head reaches ~half the screen. Corner presence.
+            height: 'min(56vh, 660px)',
             aspectRatio: '9 / 16',
             filter: 'drop-shadow(0 14px 34px rgba(0,0,0,0.55))',
           }}

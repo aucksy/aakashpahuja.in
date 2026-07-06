@@ -23,6 +23,41 @@ const glassPanel: CSSProperties = {
   pointerEvents: 'auto',
 };
 
+// Mobile-only glyphs for the icon toggles. All draw with currentColor so they
+// inherit the button's ink (active = dark on white, inactive = --muted).
+function SoundIcon({ muted }: { muted: boolean }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" stroke="none" />
+      {muted ? (
+        <path d="M16 9l5 6M21 9l-5 6" />
+      ) : (
+        <>
+          <path d="M16.5 8.5a5 5 0 0 1 0 7" />
+          <path d="M19.5 5.5a9 9 0 0 1 0 13" />
+        </>
+      )}
+    </svg>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+    </svg>
+  );
+}
+
+function SunIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="4" fill="currentColor" stroke="none" />
+      <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4" />
+    </svg>
+  );
+}
+
 /** The 0→100 loader. Reads loadSignal in its own rAF and writes textContent
  *  directly — no per-frame React re-render. The burst IS the loader (§21). */
 function LoadingCounter({ ink, accent }: { ink: string; accent: string }) {
@@ -113,9 +148,13 @@ export default function EnterControls() {
     }
   };
 
-  const segBtn = (active: boolean): CSSProperties => ({
+  const segBtn = (active: boolean, icon = false): CSSProperties => ({
     ...mono,
-    padding: '7px 15px',
+    padding: icon ? 0 : '7px 15px',
+    width: icon ? 38 : undefined,
+    height: icon ? 38 : undefined,
+    display: icon ? 'grid' : undefined,
+    placeItems: icon ? 'center' : undefined,
     border: 0,
     borderRadius: 999,
     cursor: 'pointer',
@@ -137,18 +176,23 @@ export default function EnterControls() {
         Aakash Pahuja · Digital Product Manager / Designer
       </div>
 
-      {/* Persistent mute */}
+      {/* Persistent mute — desktop: text pill, top-right. Mobile: icon-only,
+          bottom-left (where the volume dial used to sit). */}
       <AnimatePresence>
         {audioStarted && (
           <motion.button
-            initial={{ opacity: 0, y: -8 }}
+            initial={{ opacity: 0, y: isMobile ? 8 : -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             onClick={toggleMute}
             aria-label={muted ? 'Unmute music' : 'Mute music'}
-            style={{ position: 'absolute', top: 'clamp(16px,3vw,28px)', right: 'clamp(16px,3vw,28px)', ...glassPanel, ...mono, color: 'var(--ink)', padding: '9px 16px', cursor: 'pointer' }}
+            style={
+              isMobile
+                ? { position: 'absolute', left: 'clamp(16px,3vw,28px)', bottom: 'clamp(16px,3vw,28px)', ...glassPanel, display: 'grid', placeItems: 'center', width: 46, height: 46, padding: 0, color: 'var(--ink)', cursor: 'pointer' }
+                : { position: 'absolute', top: 'clamp(16px,3vw,28px)', right: 'clamp(16px,3vw,28px)', ...glassPanel, ...mono, color: 'var(--ink)', padding: '9px 16px', cursor: 'pointer' }
+            }
           >
-            {muted ? '♪ muted' : '♪ sound on'}
+            {isMobile ? <SoundIcon muted={muted} /> : muted ? '♪ muted' : '♪ sound on'}
           </motion.button>
         )}
       </AnimatePresence>
@@ -223,29 +267,33 @@ export default function EnterControls() {
         </AnimatePresence>
       </div>
 
-      {/* Volume / intensity dial */}
-      <div style={{ position: 'absolute', left: 'clamp(18px,3vw,30px)', bottom: 'clamp(18px,3vw,28px)', display: 'flex', flexDirection: 'column', gap: 6, pointerEvents: 'auto' }}>
-        <span style={{ ...mono, fontSize: 9.5, color: sceneFaint, transition: ease }}>Volume · intensity</span>
-        <input
-          type="range"
-          min={0}
-          max={100}
-          value={Math.round(volume * 100)}
-          aria-label="Volume and intensity"
-          onChange={(e) => onVolume(Number(e.target.value) / 100)}
-          style={{ width: 150, '--accent': 'var(--cyan)' } as CSSProperties}
-        />
-      </div>
+      {/* Volume / intensity dial — desktop only. Phones drop it entirely and use
+          the icon sound toggle (bottom-left) for a simple on/off instead. */}
+      {!isMobile && (
+        <div style={{ position: 'absolute', left: 'clamp(18px,3vw,30px)', bottom: 'clamp(18px,3vw,28px)', display: 'flex', flexDirection: 'column', gap: 6, pointerEvents: 'auto' }}>
+          <span style={{ ...mono, fontSize: 9.5, color: sceneFaint, transition: ease }}>Volume · intensity</span>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={Math.round(volume * 100)}
+            aria-label="Volume and intensity"
+            onChange={(e) => onVolume(Number(e.target.value) / 100)}
+            style={{ width: 150, '--accent': 'var(--cyan)' } as CSSProperties}
+          />
+        </div>
+      )}
 
-      {/* Dark / Light world toggle */}
+      {/* Dark / Light world toggle — desktop: horizontal text segments with a
+          label. Mobile: vertical, icon-only (moon / sun), no label. */}
       <div style={{ position: 'absolute', right: 'clamp(18px,3vw,30px)', bottom: 'clamp(18px,3vw,28px)', display: 'flex', flexDirection: 'column', gap: 6, alignItems: 'flex-end', pointerEvents: 'auto' }}>
-        <span style={{ ...mono, fontSize: 9.5, color: sceneFaint, transition: ease }}>World</span>
-        <div style={{ display: 'flex', gap: 3, padding: 4, ...glassPanel }}>
-          <button style={segBtn(theme === 'dark')} onClick={() => setTheme('dark')} aria-pressed={theme === 'dark'}>
-            Dark
+        {!isMobile && <span style={{ ...mono, fontSize: 9.5, color: sceneFaint, transition: ease }}>World</span>}
+        <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 3, padding: 4, ...glassPanel }}>
+          <button style={segBtn(theme === 'dark', isMobile)} onClick={() => setTheme('dark')} aria-pressed={theme === 'dark'} aria-label="Dark world">
+            {isMobile ? <MoonIcon /> : 'Dark'}
           </button>
-          <button style={segBtn(theme === 'light')} onClick={() => setTheme('light')} aria-pressed={theme === 'light'}>
-            Light
+          <button style={segBtn(theme === 'light', isMobile)} onClick={() => setTheme('light')} aria-pressed={theme === 'light'} aria-label="Light world">
+            {isMobile ? <SunIcon /> : 'Light'}
           </button>
         </div>
       </div>
