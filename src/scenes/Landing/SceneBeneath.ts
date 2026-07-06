@@ -250,24 +250,34 @@ export class SceneBeneath {
       let ty: number;
       if (portrait) {
         // PHONE (§ user): a ring can't fit around the big centre waveform on a
-        // narrow screen, so lay the objects in two horizontal BANDS — above and
-        // below the waveform — spread across the width, two rows each. That
-        // clears the waveform AND guarantees no overlaps; the burst blows them
-        // toward the vertical edges. Geometry only: the beat pops, onBeat and the
-        // gather spring (k/damp) are untouched, so sync + re-arrange speed hold.
+        // narrow screen, so scatter the objects into two BANDS — above and below
+        // it — like a designer would: columns keep them apart horizontally, two
+        // y-lanes plus a DETERMINISTIC per-object jitter give an organic,
+        // hand-placed spread (not an army line), and they can never overlap. The
+        // burst blows them toward the vertical edges. Geometry only: onBeat, the
+        // count-in and the gather spring (k/damp) are untouched — sync + speed hold.
         const N = this.objects.length;
         const isTop = i % 2 === 0;
         const gN = isTop ? Math.ceil(N / 2) : Math.floor(N / 2);
         const gi = Math.floor(i / 2);
-        const rows = gN > 4 ? 2 : 1;
-        const perRow = Math.ceil(gN / rows);
-        const row = Math.floor(gi / perRow);
+        const perRow = Math.ceil(gN / 2);
+        const row = Math.floor(gi / perRow); // 0 or 1
         const col = gi % perRow;
         const inRow = Math.min(perRow, gN - row * perRow);
-        const fx = (col + 0.5) / inRow;
-        const bx = this.sw * (0.12 + 0.76 * fx);
-        const yBand = isTop ? (row === 0 ? 0.12 : 0.27) : row === 0 ? 0.88 : 0.73;
-        const by = this.sh * yBand + Math.sin(fx * Math.PI) * this.sh * 0.012 * (isTop ? -1 : 1);
+        // deterministic pseudo-random — fixed per object, never a per-frame jitter
+        const rnd = (k: number) => {
+          const v = Math.sin(k * 12.9898 + 4.13) * 43758.5453;
+          return v - Math.floor(v);
+        };
+        // x: even columns, alternate row brick-shifted, plus a small jitter
+        const shift = row === 1 ? 0.5 / inRow : 0;
+        const fx = Math.min(0.995, Math.max(0.005, (col + 0.5) / inRow + shift));
+        const bx = this.sw * (0.1 + 0.8 * fx + (rnd(i * 2.7 + 1) - 0.5) * 0.05);
+        // y: each row keeps its own lane inside the 0.20-tall band, at a free
+        // jittered height — so it never reads as two straight rows.
+        const zoneTop = isTop ? 0.09 : 0.71;
+        const lane = row === 0 ? 0.02 : 0.52;
+        const by = this.sh * (zoneTop + (lane + rnd(i * 1.63 + 9) * 0.44) * 0.2);
         tx = CX + (bx - CX) * (1 + burst * 0.9);
         ty = CY + (by - CY) * (1 + burst * 2.0);
       } else {

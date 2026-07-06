@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion';
 import SmoothScroll from './SmoothScroll';
 import ChapterRail from './ChapterRail';
+import { Reveal } from './ui';
+import { useIsMobile } from '@/lib/useIsMobile';
 import Hero from './chapters/Hero';
 import Apps from './chapters/Apps';
 import Fitness from './chapters/Fitness';
@@ -9,12 +11,40 @@ import Gaming from './chapters/Gaming';
 import GitHub from './chapters/GitHub';
 import Contact from './chapters/Contact';
 
+/** A full-width divider — one big, hero-scale word that heads the Work and Play
+ *  halves of the journey (§ user). Not a Chapter (it doesn't drive the rail). */
+function Separator({ word, gradient }: { word: string; gradient: string }) {
+  return (
+    <section style={{ minHeight: '54vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(40px,9vh,110px) 0' }}>
+      <Reveal>
+        <div
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontWeight: 700,
+            fontSize: 'clamp(52px,13vw,140px)',
+            lineHeight: 0.9,
+            letterSpacing: '-0.04em',
+            textAlign: 'center',
+            background: gradient,
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            color: 'transparent',
+          }}
+        >
+          {word}
+        </div>
+      </Reveal>
+    </section>
+  );
+}
+
 /**
  * The travelling journey (§12–13). A centered content column (≤1080px) scrolls
  * over the fixed WebGL world; each chapter arrives as a set-piece. Hidden and
  * inert through the overture/burst, it fades in once the visitor is in the world.
  */
 export default function Journey() {
+  const isMobile = useIsMobile();
   // Mounts only once the visitor is in the world, so it fades up on mount.
   return (
     <>
@@ -27,11 +57,15 @@ export default function Journey() {
         >
           <main id="content" style={{ maxWidth: 1080, margin: '0 auto', padding: '0 clamp(22px,5vw,54px)' }}>
             <Hero />
+            {/* Work = the apps; Play = everything after. Big-word dividers. */}
+            <Separator word="Work" gradient="linear-gradient(100deg,var(--cyan),var(--violet) 55%,var(--magenta))" />
             <Apps />
+            <Separator word="Play" gradient="linear-gradient(100deg,var(--gold),var(--coral),var(--magenta))" />
             <Fitness />
             <Guitar />
             <Gaming />
-            <GitHub />
+            {/* GitHub is sample data — dropped on phones (§ user); no gap left. */}
+            {!isMobile && <GitHub />}
             <Contact />
           </main>
         </motion.div>

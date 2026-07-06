@@ -85,7 +85,7 @@ export default function Hero() {
 
       {/* Hero statement — two big lines; "obsession" in the accent gradient. */}
       <Words text="Products aren't built with prompts." style={bigStyle} />
-      <Words text="They're forged through obsession." style={bigStyle} accentWord="obsession" accentStyle={obsessionStyle} />
+      <Words text="They're forged through obsession" style={bigStyle} accentWord="obsession" accentStyle={obsessionStyle} />
 
       <Reveal delay={0.6} immediate>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 46, fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--muted)' }}>

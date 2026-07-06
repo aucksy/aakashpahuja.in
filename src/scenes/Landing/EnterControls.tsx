@@ -23,9 +23,10 @@ const glassPanel: CSSProperties = {
   pointerEvents: 'auto',
 };
 
-// Soft off-white for the shell-less landing icons — clear on the dark scene and,
-// with a drop-shadow, still legible over the bright light world.
+// Shell-less landing icons: soft off-white on the DARK world; a muted grey on the
+// bright LIGHT world (§ user — off-white was too hot in the eye on the beach).
 const OFFWHITE = '#c4ccdb';
+const ICON_GREY = '#6b6470';
 
 // Mobile-only glyphs — off-white solid (currentColor).
 function SoundIcon({ on }: { on: boolean }) {
@@ -169,7 +170,7 @@ export default function EnterControls() {
     // Icon toggle (mobile): shell-less off-white glyphs — active is full opacity,
     // inactive dims. Text toggle (desktop): white active pill.
     background: icon ? 'transparent' : active ? 'rgba(255,255,255,0.92)' : 'transparent',
-    color: icon ? OFFWHITE : active ? '#06070d' : 'var(--muted)',
+    color: icon ? (light ? ICON_GREY : OFFWHITE) : active ? '#06070d' : 'var(--muted)',
     opacity: icon && !active ? 0.38 : 1,
   });
 
@@ -302,7 +303,7 @@ export default function EnterControls() {
             onClick={() => setSliderOpen((v) => !v)}
             aria-label={soundOn ? 'Sound on — tap to adjust volume' : 'Muted — tap to adjust volume'}
             aria-expanded={sliderOpen}
-            style={{ background: 'transparent', border: 0, display: 'grid', placeItems: 'center', width: 44, height: 44, padding: 0, color: OFFWHITE, cursor: 'pointer', filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.7))' }}
+            style={{ background: 'transparent', border: 0, display: 'grid', placeItems: 'center', width: 44, height: 44, padding: 0, color: light ? ICON_GREY : OFFWHITE, cursor: 'pointer', filter: 'drop-shadow(0 2px 6px rgba(0,0,0,0.7))' }}
           >
             <SoundIcon on={soundOn} />
           </button>

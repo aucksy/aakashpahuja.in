@@ -1,8 +1,9 @@
 import Chapter from '../Chapter';
 import { Reveal } from '../ui';
+import { useIsMobile } from '@/lib/useIsMobile';
 
 const LINKS = [
-  { label: 'Email', value: 'contact@aakashpahuja.in', href: 'mailto:contact@aakashpahuja.in', accent: 'var(--cyan)' },
+  { label: 'Email', value: 'connect@aakashpahuja.in', href: 'mailto:connect@aakashpahuja.in', accent: 'var(--cyan)' },
   { label: 'GitHub', value: 'github.com/aucksy', href: 'https://github.com/aucksy', accent: 'var(--violet)' },
   { label: 'Instagram', value: '@aakashpahuja108', href: 'https://instagram.com/aakashpahuja108', accent: 'var(--magenta)' },
   { label: 'Hevy', value: 'hevy.com/user/aucksy', href: 'https://hevy.com/user/aucksy', accent: 'var(--coral)' },
@@ -16,12 +17,13 @@ const NEAR = '0px 0px -10% 0px';
 
 /** SC-09 — the road curves into the sky; contact links as constellations. */
 export default function Contact() {
+  const isMobile = useIsMobile();
   return (
     <Chapter id="contact" label="Contact">
       <div style={{ textAlign: 'center', maxWidth: 820, margin: '0 auto' }}>
         <Reveal margin={NEAR}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 22 }}>
-            07 · Arrival
+            {isMobile ? 'Arrival' : '07 · Arrival'}
           </div>
         </Reveal>
         <Reveal delay={0.05} margin={NEAR}>

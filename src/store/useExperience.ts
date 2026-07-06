@@ -24,12 +24,12 @@ interface Persisted {
 function loadPersisted(): Persisted {
   try {
     const raw = localStorage.getItem(LS_KEY);
-    if (raw) return { theme: 'dark', volume: 0.55, visited: false, ...JSON.parse(raw) };
+    if (raw) return { theme: 'dark', volume: 0.6, visited: false, ...JSON.parse(raw) };
   } catch {
     /* ignore */
   }
   // First visit: honour prefers-color-scheme for the initial world (§03).
-  return { theme: prefersLight() ? 'light' : 'dark', volume: 0.55, visited: false };
+  return { theme: prefersLight() ? 'light' : 'dark', volume: 0.6, visited: false };
 }
 
 function save(p: Persisted) {

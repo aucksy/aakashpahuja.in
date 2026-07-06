@@ -1,6 +1,7 @@
 import { type ReactNode, type CSSProperties } from 'react';
 import { motion } from 'framer-motion';
 import { useExperience } from '@/store/useExperience';
+import { useIsMobile } from '@/lib/useIsMobile';
 
 // Shared journey UI kit — keeps every chapter on the one glass design system
 // (§08) so the travel feels like one continuous world, not seven pages.
@@ -53,6 +54,8 @@ export function Reveal({
 
 /** Chapter kicker: "02 · My Apps" with the chapter accent. */
 export function Kicker({ n, children, accent }: { n: string; children: ReactNode; accent: string }) {
+  // Phones drop the section number (§ user) — just the dot + label.
+  const isMobile = useIsMobile();
   return (
     <Reveal>
       <div
@@ -69,7 +72,8 @@ export function Kicker({ n, children, accent }: { n: string; children: ReactNode
         }}
       >
         <span style={{ width: 7, height: 7, borderRadius: 2, background: accent, boxShadow: `0 0 12px ${accent}` }} />
-        {n} · {children}
+        {!isMobile && `${n} · `}
+        {children}
       </div>
     </Reveal>
   );

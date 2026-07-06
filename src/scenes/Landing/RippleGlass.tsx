@@ -152,12 +152,13 @@ function Ripple() {
     let hintRaf = 0;
     let hintT0 = 0;
     const hintPhone = window.matchMedia('(max-width: 760px)').matches;
-    // Phone (§ user): a smaller, LOWER swipe — down where the Enter copy sat.
+    // Phone (§ user): a FAST, edge-to-edge swipe across the top-middle (between
+    // the screen top and the waveform top), angled ~20° upward left→right.
     // Desktop: the upper-centre swipe.
-    const hintFrom: [number, number] = hintPhone ? [0.45, 0.72] : [0.36, 0.44];
-    const hintTo: [number, number] = hintPhone ? [0.57, 0.72] : [0.64, 0.34];
+    const hintFrom: [number, number] = hintPhone ? [0.06, 0.24] : [0.36, 0.44];
+    const hintTo: [number, number] = hintPhone ? [0.94, 0.09] : [0.64, 0.34];
     let hintLast: [number, number] = [hintFrom[0], hintFrom[1]];
-    const HINT_MS = 900;
+    const HINT_MS = hintPhone ? 560 : 900;
     const hintStep = () => {
       if (useExperience.getState().phase !== 'overture') return; // entered — stop
       const k = Math.min(1, (performance.now() - hintT0) / HINT_MS);
@@ -184,7 +185,7 @@ function Ripple() {
       if (st.phase !== 'overture' || st.reducedMotion || rt.current.ptrOn > 0.01) return;
       hintT0 = performance.now();
       hintRaf = requestAnimationFrame(hintStep);
-    }, 1000);
+    }, 1500);
 
     return () => {
       window.clearTimeout(hintTimer);
@@ -420,9 +421,9 @@ function Ripple() {
     // cursor/finger wipe still reveals the scene at full strength). Light unchanged.
     const fd = 1 - 0.3 * (1 - s.themeMix);
     (uniforms.u_frost.value as THREE.Vector3).set(P.frost[0] * fd, P.frost[1] * fd, P.frost[2] * fd);
-    // Dark frost conceals almost everything: ~3% scene-through at rest (user
-    // −25% again, to hide the hidden objects better); the wipe (cl→0.92) reveals.
-    uniforms.u_rest.value = 0.03 + 0.19 * s.themeMix;
+    // Dark frost conceals almost everything: ~1.5% scene-through at rest (user:
+    // objects must be BARELY visible until wiped); the wipe (cl→0.92) reveals.
+    uniforms.u_rest.value = 0.015 + 0.205 * s.themeMix;
     (uniforms.u_res.value as THREE.Vector2).set(gl.domElement.width, gl.domElement.height);
   });
 
