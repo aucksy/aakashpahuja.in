@@ -283,6 +283,7 @@ class AudioEngine {
 
   playing = false;
   ready = false;
+  private bgPaused = false; // suspended because the tab/app went to the background
 
   /** Fetch the raw track bytes early (no AudioContext / no gesture needed). */
   async preload(): Promise<void> {
@@ -426,6 +427,28 @@ class AudioEngine {
   setVolume(v: number, muted: boolean): void {
     if (!this.playing) return;
     this.fade(muted ? 0 : v, 0.25);
+  }
+
+  /** Pause when the tab/app leaves the foreground (§ user: the music must not
+   *  keep playing in the background). Suspends the audio clock, so on return
+   *  playback resumes at the exact same sample — position, loop, and the
+   *  scheduled tail-stop are all preserved. Additive only: start(), the
+   *  scheduling, notBeforeMs and the beat grid are untouched, so the
+   *  icon-bounce count-in sync is unaffected. */
+  pauseForBackground(): void {
+    if (!this.ctx || !this.playing || this.bgPaused) return;
+    if (this.ctx.state === 'running') {
+      this.bgPaused = true;
+      void this.ctx.suspend().catch(() => {});
+    }
+  }
+
+  /** Resume after returning to the foreground — only ever un-pauses what this
+   *  helper paused, so it is safe to call unconditionally on visibility change. */
+  resumeFromBackground(): void {
+    if (!this.ctx || !this.bgPaused) return;
+    this.bgPaused = false;
+    if (this.ctx.state === 'suspended') void this.ctx.resume().catch(() => {});
   }
 
   // ---- beat-grid clock -----------------------------------------------------

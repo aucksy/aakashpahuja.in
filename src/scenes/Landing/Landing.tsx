@@ -42,6 +42,23 @@ export default function Landing() {
     void audio.preload();
   }, []);
 
+  // Leave the tab/app (switch tabs, minimise, lock the phone, background it on
+  // mobile) → pause the music so it never plays into the background; return →
+  // resume exactly where it left off. Pausing is gated to the world so the
+  // sacred overture / beat-locked count-in is never touched; resume only
+  // un-pauses what the background handler paused.
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.hidden) {
+        if (useExperience.getState().phase === 'world') audio.pauseForBackground();
+      } else {
+        audio.resumeFromBackground();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => document.removeEventListener('visibilitychange', onVisibility);
+  }, []);
+
   if (!hasWebGL) return <NoWebGLFallback />;
 
   return (
