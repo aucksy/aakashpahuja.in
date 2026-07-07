@@ -53,14 +53,6 @@ const APPS: App[] = [
     icon: '/assets/icon-forgeai.png',
     screens: ['/assets/forgeai-home.jpg', '/assets/forgeai-chat.jpg', '/assets/forgeai-analytics.jpg'],
   },
-  {
-    name: 'BragBuddy',
-    accent: 'var(--bragbuddy)',
-    tag: 'AI journal for work wins',
-    desc: 'Speak or type a few seconds a day and BragBuddy keeps an always-ready record of your wins, organised around your own appraisal framework — the pillars your company reviews you on. At review time, AI curates a polished, manager-ready summary: the strongest wins per pillar, ready to paste into the form.',
-    icon: '/assets/icon-bragbuddy.png',
-    screens: ['/assets/bragbuddy-home.jpg', '/assets/bragbuddy-framework.jpg', '/assets/bragbuddy-summary.jpg'],
-  },
 ];
 
 function Phone({ screens, accent, flip, flat }: { screens: string[]; accent: string; flip: boolean; flat: boolean }) {
