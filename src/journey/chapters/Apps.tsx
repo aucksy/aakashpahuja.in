@@ -18,8 +18,8 @@ const APPS: App[] = [
     accent: 'var(--spends)',
     tag: 'Remaining-salary tracker for credit-card users',
     desc: "A remaining-salary tracker built for credit-card users. It reads spends straight from your bank SMS, adds recurring payments on autopilot, splits a single transaction across categories, and backs up to Google Drive — so what's actually left is always one glance away.",
-    icon: '/assets/icon-spends.png',
-    screens: ['/assets/spends-splash.jpg', '/assets/spends-home.png', '/assets/spends-analytics.png', '/assets/spends-recurring.png'],
+    icon: '/assets/icon-spends-rounded.png',
+    screens: ['/assets/spends-splash.jpg', '/assets/spends-home.png', '/assets/spends-analytics.png', '/assets/spends-recurring.png', '/assets/spends-settings.jpg'],
   },
   {
     name: 'Notification Digest',
