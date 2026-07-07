@@ -114,11 +114,26 @@ export default function EnterControls() {
   const isMobile = useIsMobile();
   // Mobile: the volume dial is tucked behind the sound button and slides up on tap.
   const [sliderOpen, setSliderOpen] = useState(false);
+  const soundGroupRef = useRef<HTMLDivElement>(null);
   const soundOn = !muted && volume > 0.02;
 
   useEffect(() => {
     if (audioStarted) audio.setVolume(volume, muted);
   }, [volume, muted, audioStarted]);
+
+  // Mobile: an open volume dial dismisses itself when you tap anywhere outside
+  // the sound-button + dial group (the dial box itself stays put so you can drag
+  // it). pointerdown so it closes the instant you reach for something else.
+  useEffect(() => {
+    if (!sliderOpen) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (soundGroupRef.current && !soundGroupRef.current.contains(e.target as Node)) {
+        setSliderOpen(false);
+      }
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [sliderOpen]);
 
   const withMusic = volume > 0.02;
 
@@ -277,7 +292,7 @@ export default function EnterControls() {
           persistent "sound" button (from the overture on) reveals the SAME dial
           on tap — it drives the waveform + audio exactly as before. */}
       {isMobile ? (
-        <div style={{ position: 'absolute', left: 'clamp(16px,3vw,28px)', bottom: 'clamp(16px,3vw,28px)', display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start', pointerEvents: 'auto' }}>
+        <div ref={soundGroupRef} style={{ position: 'absolute', left: 'clamp(16px,3vw,28px)', bottom: 'clamp(16px,3vw,28px)', display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-start', pointerEvents: 'auto' }}>
           <AnimatePresence>
             {sliderOpen && (
               <motion.div
