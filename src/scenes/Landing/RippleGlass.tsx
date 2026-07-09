@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { EffectComposer, Bloom, Noise, Vignette } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import * as THREE from 'three';
 
 import { useExperience } from '@/store/useExperience';
-import { dprCap } from '@/lib/env';
+import { dprCap, type Quality } from '@/lib/env';
 import { lerpPalette } from '@/theme/palettes';
 import { audio } from '@/audio/AudioEngine';
 import { worldVideoUrl, preloadProgress } from '@/lib/videoPreload';
@@ -462,6 +462,24 @@ function Post({ reduced }: { reduced: boolean }) {
   );
 }
 
+// The ripple fragment shader is heavily fill-bound (4× hgt() source loops +
+// 25-tap blur per pixel, then the bloom chain repaints the frame), so its cost
+// scales with DEVICE pixels — big desktop monitors (1440p/4K, Windows 125–150%
+// scaling) blow the GPU frame budget while phones stay tiny. The glass is
+// frosted + box-blurred — soft by design — so cap the canvas at a ~1080p pixel
+// budget and let the browser upscale: visually indistinguishable through the
+// frost, 2–4× fewer shaded pixels. u_res reads the real drawing-buffer size
+// every frame, so blur radii / gradients adapt automatically. Render-resolution
+// only — no timing, beat, loader or shader-logic change.
+const GLASS_PX_BUDGET = 2_300_000;
+function glassDpr(quality: Quality): number {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const fit = Math.sqrt(GLASS_PX_BUDGET / Math.max(1, w * h));
+  const native = window.devicePixelRatio || 1;
+  return Math.max(0.75, Math.min(native, dprCap(quality), 1.5, fit));
+}
+
 export default function RippleGlass() {
   const quality = useExperience((s) => s.quality);
   const reduced = useExperience((s) => s.reducedMotion);
@@ -470,6 +488,13 @@ export default function RippleGlass() {
   // world VIDEO behind it (WorldBackdrop, z:0). Post is dropped at world so the
   // composer can't paint over the video; the frame loop early-returns too.
   const world = phase === 'world';
+  const [dpr, setDpr] = useState(() => glassDpr(quality));
+  useEffect(() => {
+    const onResize = () => setDpr(glassDpr(quality));
+    onResize();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [quality]);
   return (
     <Canvas
       style={{
@@ -482,7 +507,7 @@ export default function RippleGlass() {
         transition: 'opacity 1.5s ease 0.15s',
       }}
       gl={{ alpha: false, antialias: false, powerPreference: 'high-performance', stencil: false }}
-      dpr={[1, Math.min(1.5, dprCap(quality))]}
+      dpr={dpr}
       camera={{ position: [0, 0, 1], near: 0.1, far: 10 }}
       onCreated={({ gl }) => gl.setClearColor(0x05060b, 1)}
     >
