@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useExperience } from '@/store/useExperience';
 import { audio } from '@/audio/AudioEngine';
 import { loadSignal, GATHER_SECONDS } from './loadSignal';
-import { startPreload, worldVideoUrl } from '@/lib/videoPreload';
+import { requestPreload, worldVideoUrl } from '@/lib/videoPreload';
 import { useIsMobile } from '@/lib/useIsMobile';
 import WaveRing from './WaveRing';
 
@@ -149,7 +149,10 @@ export default function EnterControls() {
   const onEnter = async () => {
     enter();
     // The loader preloads the cinematic world video; the burst waits for it.
-    startPreload(worldVideoUrl(useExperience.getState().theme));
+    // Desktop defers the 13MB fetch until the count-in has landed (§ user: the
+    // download churned the gather window and the icons re-arranged late);
+    // phones start immediately — unchanged.
+    requestPreload(worldVideoUrl(useExperience.getState().theme), !isMobile);
     if (withMusic) {
       setAudioStarted(true);
       // Playback is SCHEDULED to begin only after the icons have finished

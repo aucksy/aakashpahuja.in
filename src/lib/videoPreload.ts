@@ -3,6 +3,8 @@
 // progress via fetch streaming and hands back a blob URL so playback starts
 // instantly with zero network stall.
 
+import { loadSignal } from '@/scenes/Landing/loadSignal';
+
 export const WORLD_VIDEOS = {
   dark: '/assets/world-city.mp4',
   light: '/assets/world-beach.mp4',
@@ -50,6 +52,35 @@ export function startPreload(url: string): void {
       e.done = true;
     }
   })();
+}
+
+const deferred = new Set<string>();
+
+/** Start the download now — or, when `defer` is set (DESKTOP during the
+ *  count-in), wait until the three bounces have landed first. § user: on a
+ *  fast desktop connection the 13MB fetch churned the main thread during the
+ *  gather, the per-frame gather spring lost wall-clock time, and the icons
+ *  re-arranged late — missing beat 1. Deferring to `loadSignal.countInDone`
+ *  (flips at beat 4, with its own in-loop fallbacks) clears the sync window;
+ *  the 4.5s backstop here makes a deadlock impossible even if the flag never
+ *  flips. Phones pass defer=false everywhere — byte-identical behaviour.
+ *  (Also the avatar-era desktop loader rhythm: 00 through the bounces, then
+ *  the counter tracks the download.) */
+export function requestPreload(url: string, defer = false): void {
+  if (reg.has(url) || deferred.has(url)) return;
+  if (!defer || loadSignal.countInDone) {
+    startPreload(url);
+    return;
+  }
+  deferred.add(url);
+  const t0 = performance.now();
+  const id = window.setInterval(() => {
+    if (loadSignal.countInDone || performance.now() - t0 > 4500) {
+      window.clearInterval(id);
+      deferred.delete(url);
+      startPreload(url);
+    }
+  }, 100);
 }
 
 /** 0..1 download progress (1 if unknown/failed so the loader can't hang). */

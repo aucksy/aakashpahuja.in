@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useExperience } from '@/store/useExperience';
-import { worldVideoUrl, preloadedSrc, startPreload } from '@/lib/videoPreload';
+import { worldVideoUrl, preloadedSrc, requestPreload } from '@/lib/videoPreload';
+import { useIsMobile } from '@/lib/useIsMobile';
 
 /**
  * The living world behind the glass (§ user spec #2/#4):
@@ -66,12 +67,16 @@ function CrossfadeLoop({ src }: { src: string }) {
 export default function WorldBackdrop() {
   const phase = useExperience((s) => s.phase);
   const theme = useExperience((s) => s.theme);
+  const isMobile = useIsMobile();
   const show = phase === 'burst' || phase === 'world';
 
   // Theme toggled mid-journey → fetch the other world in the background.
+  // Desktop during LOADING defers until the count-in lands (same reason as
+  // EnterControls — keep the gather window clear); burst/world and phones
+  // fetch immediately, exactly as before.
   useEffect(() => {
-    if (phase !== 'overture') startPreload(worldVideoUrl(theme));
-  }, [phase, theme]);
+    if (phase !== 'overture') requestPreload(worldVideoUrl(theme), !isMobile && phase === 'loading');
+  }, [phase, theme, isMobile]);
 
   if (!show) return null;
   const src = preloadedSrc(worldVideoUrl(theme));

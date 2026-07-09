@@ -285,7 +285,20 @@ class AudioEngine {
   ready = false;
   private bgPaused = false; // suspended because the tab/app went to the background
 
-  /** Fetch the raw track bytes early (no AudioContext / no gesture needed). */
+  /** Fetch the raw track bytes early (no AudioContext / no gesture needed).
+   *
+   *  DESKTOP (§ user: the icons re-arranged late and missed beat 1 — the
+   *  Enter-time decode janked the gather window): also DECODE the track now,
+   *  during the idle overture. The context is created suspended (allowed
+   *  pre-gesture; start() resumes it inside the Enter gesture exactly as
+   *  before), and start()'s own `if (!this.buffer)` guard simply finds the
+   *  decode done — start(), the scheduling, notBeforeMs and the grid are all
+   *  untouched. Deliberately DECODE ONLY: the beat grid must stay null until
+   *  start() computes it, because a grid without a playhead flips
+   *  audio.hasGrid() and would silence the count-in pops on the quiet-entry
+   *  path (adversarial review finding). Any failure here falls back to the
+   *  classic decode-at-start() path. Phones return after the byte fetch —
+   *  byte-identical to the previous behaviour. */
   async preload(): Promise<void> {
     if (this.rawBytes) return;
     try {
@@ -293,6 +306,21 @@ class AudioEngine {
       this.rawBytes = await res.arrayBuffer();
     } catch (e) {
       console.warn('[audio] preload failed', e);
+      return;
+    }
+    if (window.matchMedia('(max-width: 760px)').matches) return; // phone: unchanged
+    try {
+      if (!this.ctx) {
+        const Ctor = (window.AudioContext ||
+          (window as unknown as { webkitAudioContext: AudioContextCtor }).webkitAudioContext) as AudioContextCtor;
+        this.ctx = new Ctor();
+      }
+      if (!this.buffer) {
+        this.buffer = await this.ctx.decodeAudioData(this.rawBytes.slice(0));
+        console.info('[audio] track pre-decoded during the overture');
+      }
+    } catch (e) {
+      console.warn('[audio] early decode failed — start() will decode as before', e);
     }
   }
 
