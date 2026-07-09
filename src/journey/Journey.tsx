@@ -4,6 +4,8 @@ import ChapterRail from './ChapterRail';
 import { Reveal } from './ui';
 import { useIsMobile } from '@/lib/useIsMobile';
 import Hero from './chapters/Hero';
+import About from './chapters/About';
+import Career from './chapters/Career';
 import Apps from './chapters/Apps';
 import Fitness from './chapters/Fitness';
 import Guitar from './chapters/Guitar';
@@ -59,6 +61,9 @@ export default function Journey() {
         >
           <main id="content" style={{ maxWidth: 1080, margin: '0 auto', padding: '0 clamp(22px,5vw,54px)' }}>
             <Hero />
+            {/* Who I am, then the day job — the "by day" half before the apps. */}
+            <About />
+            <Career />
             {/* "Meet my Apps" heads the work half; "Play" the rest. Big dividers. */}
             <Separator word="Meet my Apps" gradient="linear-gradient(100deg,var(--cyan),var(--violet) 55%,var(--magenta))" />
             <Apps />

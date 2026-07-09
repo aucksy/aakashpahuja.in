@@ -90,7 +90,7 @@ function Strings() {
 export default function Guitar() {
   return (
     <Chapter id="guitar" label="Guitar & Singing">
-      <Kicker n="04" accent="var(--magenta)">
+      <Kicker n="06" accent="var(--magenta)">
         Guitar &amp; Singing
       </Kicker>
       <Reveal>

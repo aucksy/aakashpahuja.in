@@ -10,10 +10,12 @@ export interface ChapterMeta {
 
 export const CHAPTERS: ChapterMeta[] = [
   { id: 'hero', n: '01', label: 'Hero', accent: 'var(--cyan)' },
-  { id: 'apps', n: '02', label: 'My Apps', accent: 'var(--emerald)' },
-  { id: 'fitness', n: '03', label: 'Fitness', accent: 'var(--coral)' },
-  { id: 'guitar', n: '04', label: 'Guitar & Singing', accent: 'var(--magenta)' },
-  { id: 'gaming', n: '05', label: 'Gaming', accent: 'var(--violet)' },
-  { id: 'github', n: '06', label: 'GitHub', accent: 'var(--cyan)' },
-  { id: 'contact', n: '07', label: 'Contact', accent: 'var(--gold)' },
+  { id: 'about', n: '02', label: 'Hello', accent: 'var(--gold)' },
+  { id: 'career', n: '03', label: 'Career', accent: 'var(--blue)' },
+  { id: 'apps', n: '04', label: 'My Apps', accent: 'var(--emerald)' },
+  { id: 'fitness', n: '05', label: 'Fitness', accent: 'var(--coral)' },
+  { id: 'guitar', n: '06', label: 'Guitar & Singing', accent: 'var(--magenta)' },
+  { id: 'gaming', n: '07', label: 'Gaming', accent: 'var(--violet)' },
+  { id: 'github', n: '08', label: 'GitHub', accent: 'var(--cyan)' },
+  { id: 'contact', n: '09', label: 'Contact', accent: 'var(--gold)' },
 ];

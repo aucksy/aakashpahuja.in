@@ -36,7 +36,7 @@ const GAMES: Game[] = [
 export default function Gaming() {
   return (
     <Chapter id="gaming" label="Gaming">
-      <Kicker n="05" accent="var(--violet)">
+      <Kicker n="07" accent="var(--violet)">
         Gaming — three worlds
       </Kicker>
       <Reveal>

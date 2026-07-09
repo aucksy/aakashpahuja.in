@@ -42,7 +42,7 @@ export default function Fitness() {
   const pct = Math.round((TOTAL / BUS) * 100);
   return (
     <Chapter id="fitness" label="Fitness">
-      <Kicker n="03" accent="var(--coral)">
+      <Kicker n="05" accent="var(--coral)">
         Fitness — the lifting saga
       </Kicker>
 

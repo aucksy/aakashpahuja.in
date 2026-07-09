@@ -45,8 +45,7 @@ function Words({
   );
 }
 
-/** SC-03 — the arrival. The hero statement over the living city; the avatar
- *  walk-in (AvatarIntro) plays over this beat and settles bottom-left. */
+/** SC-03 — the arrival. The hero statement over the living city. */
 export default function Hero() {
   const isMobile = useIsMobile();
   const light = useExperience((s) => s.theme) === 'light';
@@ -91,7 +90,25 @@ export default function Hero() {
       <Words text="Products aren't built with prompts." style={bigStyle} />
       <Words text="They're forged through obsession" style={bigStyle} accentWord="obsession" accentStyle={obsessionStyle} />
 
-      <Reveal delay={0.6} immediate>
+      {/* Subtext — the promise under the statement (§ user). */}
+      <Reveal delay={0.55} immediate>
+        <p
+          style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: 'clamp(15.5px,2vw,21px)',
+            lineHeight: 1.65,
+            color: 'var(--muted)',
+            maxWidth: '50ch',
+            margin: '26px 0 0',
+            textShadow: '0 1px 30px rgba(5,6,11,0.4)',
+          }}
+        >
+          I design, build and ship digital experiences end-to-end — and I sweat the last 2% most people never notice.{' '}
+          <span style={{ color: 'var(--ink)' }}>Users feel it anyway.</span>
+        </p>
+      </Reveal>
+
+      <Reveal delay={0.85} immediate>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 46, fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--muted)' }}>
           <motion.span animate={{ y: [0, 6, 0] }} transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}>
             Travel the path

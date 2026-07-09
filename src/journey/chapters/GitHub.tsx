@@ -84,7 +84,7 @@ export default function GitHub() {
   const isMobile = useIsMobile();
   return (
     <Chapter id="github" label="GitHub">
-      <Kicker n="06" accent="var(--cyan)">
+      <Kicker n="08" accent="var(--cyan)">
         GitHub — the constellation
       </Kicker>
       <Reveal>
