@@ -80,7 +80,7 @@ export default function About() {
         <div>
           <Reveal delay={0.08}>
             <h2 style={{ ...h2Style, maxWidth: '18ch' }}>
-              Design is how it works — <span style={feelStyle}>and how it feels.</span>
+              Obsessed with how it works — <span style={feelStyle}>and how it feels.</span>
             </h2>
           </Reveal>
           <Reveal delay={0.16}>

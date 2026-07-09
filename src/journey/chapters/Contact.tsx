@@ -28,10 +28,10 @@ export default function Contact() {
         </Reveal>
         <Reveal delay={0.05} margin={NEAR}>
           <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'clamp(36px,7vw,84px)', lineHeight: 1.0, letterSpacing: '-0.03em', margin: 0, textWrap: 'balance' }}>
-            Let's build something
+            The journey ends here —
             <br />
             <span style={{ fontFamily: 'var(--font-serif)', fontStyle: 'italic', background: 'linear-gradient(100deg,var(--gold),var(--coral),var(--magenta))', WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent' }}>
-              people love.
+              the conversation doesn't have to.
             </span>
           </h2>
         </Reveal>
