@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Neon Nightfall tile: the void, a whisper of glass, and the monoline A
+       in the site's signature cyan → violet → magenta gradient. -->
+  <defs>
+    <linearGradient id="g" x1="0.18" y1="0.15" x2="0.82" y2="0.85">
+      <stop offset="0" stop-color="#5de5e0"/>
+      <stop offset="0.55" stop-color="#8b7bf7"/>
+      <stop offset="1" stop-color="#ff5db1"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#05060b"/>
+  <rect x="0.75" y="0.75" width="62.5" height="62.5" rx="13.25" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="1.5"/>
+  <path d="M14 50 L32 13 L50 50" fill="none" stroke="url(#g)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M22.5 37 H41.5" fill="none" stroke="url(#g)" stroke-width="7" stroke-linecap="round"/>
+</svg>
