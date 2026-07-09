@@ -14,28 +14,45 @@ import GitHub from './chapters/GitHub';
 import Contact from './chapters/Contact';
 
 /** A full-width divider — one big, hero-scale word that heads the Work and Play
- *  halves of the journey (§ user). Not a Chapter (it doesn't drive the rail). */
-function Separator({ word, gradient }: { word: string; gradient: string }) {
+ *  halves of the journey (§ user). An optional small mono line above the word
+ *  playfully announces what's inside the half. Not a Chapter (no rail entry). */
+function Separator({ word, sub, gradient }: { word: string; sub?: string; gradient: string }) {
   return (
     <section style={{ minHeight: '54vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(40px,9vh,110px) 0' }}>
       <Reveal>
-        <div
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontWeight: 700,
-            fontSize: 'clamp(40px,9vw,96px)',
-            lineHeight: 0.95,
-            letterSpacing: '-0.035em',
-            textAlign: 'center',
-            maxWidth: '13ch',
-            textWrap: 'balance',
-            background: gradient,
-            WebkitBackgroundClip: 'text',
-            backgroundClip: 'text',
-            color: 'transparent',
-          }}
-        >
-          {word}
+        <div style={{ textAlign: 'center' }}>
+          {sub && (
+            <div
+              style={{
+                fontFamily: 'var(--font-mono)',
+                fontSize: 'clamp(10px,1.6vw,13px)',
+                letterSpacing: '0.3em',
+                textTransform: 'uppercase',
+                color: 'var(--muted)',
+                marginBottom: 18,
+              }}
+            >
+              {sub}
+            </div>
+          )}
+          <div
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontWeight: 700,
+              fontSize: 'clamp(40px,9vw,96px)',
+              lineHeight: 0.95,
+              letterSpacing: '-0.035em',
+              maxWidth: '13ch',
+              margin: '0 auto',
+              textWrap: 'balance',
+              background: gradient,
+              WebkitBackgroundClip: 'text',
+              backgroundClip: 'text',
+              color: 'transparent',
+            }}
+          >
+            {word}
+          </div>
         </div>
       </Reveal>
     </section>
@@ -61,13 +78,14 @@ export default function Journey() {
         >
           <main id="content" style={{ maxWidth: 1080, margin: '0 auto', padding: '0 clamp(22px,5vw,54px)' }}>
             <Hero />
-            {/* Who I am, then the day job — the "by day" half before the apps. */}
             <About />
-            <Career />
-            {/* "Meet my Apps" heads the work half; "Play" the rest. Big dividers. */}
-            <Separator word="Meet my Apps" gradient="linear-gradient(100deg,var(--cyan),var(--violet) 55%,var(--magenta))" />
+            {/* The two halves (§ user): WORK (apps first, then the Amex day job)
+                and PLAY (everything that recharges it) — each headed by a big
+                playful divider that says what's inside. */}
+            <Separator word="Work" sub="apps by night · Amex by day" gradient="linear-gradient(100deg,var(--cyan),var(--violet) 55%,var(--magenta))" />
             <Apps />
-            <Separator word="Play" gradient="linear-gradient(100deg,var(--gold),var(--coral),var(--magenta))" />
+            <Career />
+            <Separator word="Play" sub="muscle · music · monsters" gradient="linear-gradient(100deg,var(--gold),var(--coral),var(--magenta))" />
             <Fitness />
             <Guitar />
             <Gaming />

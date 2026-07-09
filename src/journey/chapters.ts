@@ -11,8 +11,8 @@ export interface ChapterMeta {
 export const CHAPTERS: ChapterMeta[] = [
   { id: 'hero', n: '01', label: 'Hero', accent: 'var(--cyan)' },
   { id: 'about', n: '02', label: 'Hello', accent: 'var(--gold)' },
-  { id: 'career', n: '03', label: 'Career', accent: 'var(--blue)' },
-  { id: 'apps', n: '04', label: 'My Apps', accent: 'var(--emerald)' },
+  { id: 'apps', n: '03', label: 'My Apps', accent: 'var(--emerald)' },
+  { id: 'career', n: '04', label: 'Career', accent: 'var(--blue)' },
   { id: 'fitness', n: '05', label: 'Fitness', accent: 'var(--coral)' },
   { id: 'guitar', n: '06', label: 'Guitar & Singing', accent: 'var(--magenta)' },
   { id: 'gaming', n: '07', label: 'Gaming', accent: 'var(--violet)' },

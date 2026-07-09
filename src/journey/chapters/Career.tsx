@@ -55,7 +55,7 @@ export default function Career() {
   const isMobile = useIsMobile();
   return (
     <Chapter id="career" label="Career">
-      <Kicker n="03" accent="var(--blue)">
+      <Kicker n="04" accent="var(--blue)">
         Career
       </Kicker>
       <Reveal>
