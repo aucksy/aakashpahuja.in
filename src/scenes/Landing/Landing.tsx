@@ -1,11 +1,11 @@
 import { useEffect, lazy, Suspense } from 'react';
 import { useExperience } from '@/store/useExperience';
 import { audio } from '@/audio/AudioEngine';
+import { loadSignal } from './loadSignal';
 import EnterControls from './EnterControls';
 import NoWebGLFallback from '@/components/NoWebGLFallback';
 import Journey from '@/journey/Journey';
 import WorldBackdrop from '@/journey/WorldBackdrop';
-import AvatarIntro from '@/journey/AvatarIntro';
 
 // The 3D stack (three + r3f + postprocessing) is code-split and streamed in
 // after the initial shell paints — keeps first-load JS lean (§21).
@@ -42,6 +42,14 @@ export default function Landing() {
     void audio.preload();
   }, []);
 
+  // The avatar walk-in was retired (§ user). Release its loader gate up-front,
+  // exactly as the asset-absent fallback always did — the loader now runs on
+  // the phrase clock + the world-video download alone (the proven phone path;
+  // the count-in and burst are byte-identical to a missing-avatar load).
+  useEffect(() => {
+    loadSignal.avatarProgress = 1;
+  }, []);
+
   // Leave the tab/app (switch tabs, minimise, lock the phone, background it on
   // mobile) → pause the music so it never plays into the background; return →
   // resume exactly where it left off. Pausing is gated to the world so the
@@ -75,8 +83,6 @@ export default function Landing() {
           overture / dance / beat-sync for frame budget. The landing runs alone,
           exactly as it did before the journey existed. */}
       {phase === 'world' && <Journey />}
-      {/* the avatar walk-in → corner presence (world only, self-gated) */}
-      <AvatarIntro />
     </>
   );
 }
