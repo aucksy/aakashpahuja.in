@@ -45,7 +45,7 @@ export default function About() {
         style={
           isMobile
             ? { display: 'flex', flexDirection: 'column', gap: 36 }
-            : { display: 'grid', gridTemplateColumns: 'minmax(0,0.9fr) minmax(0,1.1fr)', gap: 'clamp(40px,5.5vw,76px)', alignItems: 'center' }
+            : { display: 'grid', gridTemplateColumns: 'minmax(0,0.9fr) minmax(0,1.1fr)', gap: 'clamp(40px,5.5vw,76px)', alignItems: 'start' }
         }
       >
         {/* The portrait, taped up like a keepsake over the world. */}
@@ -69,10 +69,10 @@ export default function About() {
               }}
             />
             <img
-              src="/assets/portrait.webp"
-              alt="Aakash in his studio at night — guitar in hand, code on the screen behind him"
+              src="/assets/portrait-studio.jpg"
+              alt="Aakash in his home studio at night — a guitar, synth and a code-lit monitor behind him"
               loading="lazy"
-              style={{ width: '100%', display: 'block', borderRadius: 18, border: '1px solid var(--glass-border)', boxShadow: '0 30px 80px -30px rgba(0,0,0,0.7)' }}
+              style={{ width: '100%', height: 'auto', aspectRatio: '1 / 1', objectFit: 'cover', display: 'block', borderRadius: 18, border: '1px solid var(--glass-border)', boxShadow: '0 30px 80px -30px rgba(0,0,0,0.7)' }}
             />
           </div>
         </Reveal>
