@@ -29,7 +29,7 @@ const strongStyle: CSSProperties = { color: 'var(--ink)', fontWeight: 600 };
 
 const STATS = [
   { n: '9+', label: 'years in product @ Amex' },
-  { n: '6', label: 'apps designed & shipped solo' },
+  { n: '6', label: 'apps built & shipped solo' },
   { n: '0', label: 'templates used' },
   { n: '∞', label: 'black coffee' },
 ] as const;
@@ -85,9 +85,9 @@ export default function About() {
           </Reveal>
           <Reveal delay={0.16}>
             <p style={bodyStyle}>
-              I'm a <strong style={strongStyle}>passionate product designer and vibe coder</strong> who loves creating flawless digital
-              experiences. By day I do product management at American Express; by night I design, code and ship my own apps — every
-              flow, every empty state, every haptic.
+              I'm a <strong style={strongStyle}>vibe coder at heart</strong> — I love building flawless, delightful digital experiences
+              anywhere a human meets a screen. By day I do product management at American Express; by night I design, code and ship my
+              own apps — every flow, every empty state, every haptic.
             </p>
           </Reveal>
           <Reveal delay={0.24}>

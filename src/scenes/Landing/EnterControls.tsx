@@ -201,7 +201,7 @@ export default function EnterControls() {
           mute pill; the Hero re-states the name + title in-content just below. */}
       <div style={{ position: 'absolute', top: 'clamp(18px,3vw,30px)', left: 'clamp(18px,3vw,30px)', ...mono, color: sceneMuted, transition: ease, display: isMobile ? 'none' : 'flex', gap: 10, alignItems: 'center' }}>
         <span style={{ width: 8, height: 8, borderRadius: 2, background: sceneAccent, boxShadow: `0 0 12px ${sceneAccent}`, transition: ease }} />
-        Aakash Pahuja · Digital Product Manager / Designer
+        Aakash Pahuja · Digital Product Manager · Vibe Coder
       </div>
 
       {/* Persistent mute — desktop only (top-right). On mobile the bottom-left

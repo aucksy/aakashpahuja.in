@@ -68,22 +68,16 @@ export default function Hero() {
   };
   return (
     <Chapter id="hero" label="Hero">
-      {/* Identity — desktop: single line in the content flow. Mobile: name +
-          title on two lines, pinned to the top centre of the section. */}
-      {isMobile ? (
+      {/* Identity — MOBILE only: name + titles pinned to the top centre. On
+          desktop the persistent HUD kicker (EnterControls, top-left) already
+          names it — an in-content line here doubled the title (§ user). */}
+      {isMobile && (
         <div style={{ position: 'absolute', top: 'clamp(16px,6vh,54px)', left: 0, right: 0, textAlign: 'center', pointerEvents: 'none' }}>
           <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'clamp(21px,6.4vw,30px)', letterSpacing: '-0.01em', color: 'var(--ink)' }}>Aakash Pahuja</div>
           {/* light world: black (accent teal is too faint on the sand); dark: unchanged */}
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', color: light ? '#191320' : 'var(--cyan)', marginTop: 6 }}>Digital Product Designer</div>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: light ? '#191320' : 'var(--muted)', marginTop: 4 }}>Vibe Coder</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.22em', textTransform: 'uppercase', color: light ? '#191320' : 'var(--cyan)', marginTop: 6 }}>Vibe Coder</div>
+          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: light ? '#191320' : 'var(--muted)', marginTop: 4 }}>Digital Product Manager</div>
         </div>
-      ) : (
-        <Reveal immediate>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontFamily: 'var(--font-mono)', fontSize: 11.5, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'var(--cyan)', marginBottom: 26 }}>
-            <span style={{ width: 7, height: 7, borderRadius: 2, background: 'var(--cyan)', boxShadow: '0 0 12px var(--cyan)' }} />
-            Aakash Pahuja — Digital Product Manager / Designer
-          </div>
-        </Reveal>
       )}
 
       {/* Hero statement — two big lines; "obsession" in the accent gradient. */}
@@ -103,7 +97,7 @@ export default function Hero() {
             textShadow: '0 1px 30px rgba(5,6,11,0.4)',
           }}
         >
-          I design, build and ship digital experiences end-to-end — and I sweat the last 2% most people never notice.{' '}
+          I build and ship digital experiences end-to-end — and I sweat the last 2% most people never notice.{' '}
           <span style={{ color: 'var(--ink)' }}>Users feel it anyway.</span>
         </p>
       </Reveal>

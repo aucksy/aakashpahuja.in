@@ -32,7 +32,7 @@ export default function NoWebGLFallback() {
     >
       <div style={card}>
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, letterSpacing: '0.24em', textTransform: 'uppercase', color: 'var(--cyan)' }}>
-          Aakash Pahuja · Digital Product Manager / Designer
+          Aakash Pahuja · Digital Product Manager · Vibe Coder
         </div>
         <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 'clamp(32px,6vw,58px)', lineHeight: 1.02, letterSpacing: '-0.02em', margin: '18px 0 0' }}>
           Vibe coding is easy, but products people genuinely love still take{' '}
@@ -47,6 +47,7 @@ export default function NoWebGLFallback() {
           <li><strong style={{ color: 'var(--ink)' }}>Notification Digest</strong> — private, on-device notification digests.</li>
           <li><strong style={{ color: 'var(--ink)' }}>ColorCloset</strong> — wardrobe colour pairings, tuned to skin tone.</li>
           <li><strong style={{ color: 'var(--ink)' }}>Pause</strong> — a minimal doom-scroll interrupter.</li>
+          <li><strong style={{ color: 'var(--ink)' }}>Forge AI</strong> — a workout &amp; calorie tracker you talk to.</li>
         </ul>
         <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginTop: 24, fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.06em' }}>
           <a href="https://github.com/aucksy" style={{ color: 'var(--cyan)' }}>GitHub</a>

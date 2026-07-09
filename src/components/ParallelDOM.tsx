@@ -14,8 +14,9 @@ export default function ParallelDOM() {
         <h2>Apps I've shipped</h2>
         <ul>
           <li>
-            <strong>Spends</strong> — an offline-first, privacy-first expense tracker
-            (Kotlin/Compose, Material 3). Money stored as integer paise, entirely on-device.
+            <strong>Spends</strong> — a remaining-salary tracker for credit-card users: Smart
+            Cycle budgets by salary and each card's billing cycle, reads bank SMS on-device
+            (~25 Indian banks), recurring on autopilot, encrypted Drive backup.
           </li>
           <li>
             <strong>Notification Digest</strong> — intercepts notifications, stores them
@@ -29,6 +30,11 @@ export default function ParallelDOM() {
           <li>
             <strong>Pause</strong> — a minimal doom-scroll interrupter that shows a brief
             full-screen overlay after continuous time in a chosen app. No accounts, no analytics.
+          </li>
+          <li>
+            <strong>Forge AI</strong> — a workout and calorie tracker you talk to: conversational
+            logging, a progressive-overload coach that programs the next session, fully offline
+            or bring a Claude / OpenAI key.
           </li>
         </ul>
       </section>
