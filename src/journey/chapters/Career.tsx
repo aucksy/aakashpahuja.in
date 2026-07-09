@@ -85,12 +85,12 @@ export default function Career() {
             </span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
-            <Project tone="var(--blue)" status="Current" title="ComXHub — Intake & Governance Portal">
+            <Project tone="var(--blue)" status="Current" title="Enterprise Intake & Governance Portal">
               Driving product strategy for an enterprise portal that modernises how customer communications are created, governed and
               delivered across markets — one digital entry point for the entire lifecycle, inside a large multi-year transformation
               program.
             </Project>
-            <Project tone="var(--emerald)" status="Completed" title="Raven Migration">
+            <Project tone="var(--emerald)" status="Completed" title="Legacy Platform Migration">
               Led end-to-end discovery and migration of hundreds of legacy communication templates across 19 markets to a modern
               platform — reverse-engineering undocumented workflows and training engineering teams on the framework that made it
               repeatable.
@@ -99,8 +99,12 @@ export default function Career() {
           <p style={{ ...bodyStyle, marginTop: 'clamp(20px,2.6vw,26px)', maxWidth: '78ch' }}>
             Before that: nearly a decade at Amex across <strong style={strongStyle}>UAT delivery</strong> (90+ projects, 500+
             communications) and <strong style={strongStyle}>customer-operations leadership</strong> — plus a string of founder ventures
-            along the way: a tech consultancy, a D2C apparel brand, an online grocery store and a music-gear brand. Product mindset,
-            learned the hard way.
+            along the way: a tech consultancy, a D2C apparel brand, an online grocery store and a music-gear brand — all chapters
+            closed. Product mindset, learned the hard way.
+          </p>
+          <p style={{ ...bodyStyle, marginTop: 14, maxWidth: '78ch' }}>
+            The nights sharpen the days — shipping my own apps end-to-end keeps my enterprise product calls grounded in how software
+            actually gets built.
           </p>
         </div>
       </Reveal>

@@ -42,20 +42,18 @@ export default function ParallelDOM() {
       <section aria-label="Product work">
         <h2>Product work</h2>
         <p>
-          ComXHub Intake &amp; Governance Portal (current) — product strategy for an enterprise
-          single digital entry point managing the lifecycle of servicing communications; authored
-          the Phase-1 MVP PRD and Jira backlog (18 features, 76 user stories); specified RBAC,
-          audit trail, versioning, workflow and an embedded self-service mockup editor with
-          AI-assisted mockups.
+          Enterprise intake &amp; governance portal (current) — product strategy for a single
+          digital entry point managing the lifecycle of servicing communications; authored the
+          Phase-1 MVP PRD and backlog; specified RBAC, audit trail, versioning, workflow and an
+          embedded self-service mockup editor.
         </p>
         <p>
-          Raven Migration (completed) — discovery and migration of 322 legacy templates across 19
-          markets; delivered 170 communications via the new platform.
+          Legacy platform migration (completed) — end-to-end discovery and migration of hundreds
+          of legacy communication templates across 19 markets to a modern platform.
         </p>
         <p>
           Business Systems Analyst / UAT — 90+ projects, 500+ communications, 100% stakeholder
-          satisfaction; +50% throughput (300→450 per sprint); a Jira bulk test-case process that
-          improved efficiency by 94%.
+          satisfaction, and a bulk test-case process that lifted team throughput by half.
         </p>
       </section>
 

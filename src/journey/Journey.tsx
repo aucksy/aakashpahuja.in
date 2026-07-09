@@ -82,7 +82,7 @@ export default function Journey() {
             {/* The two halves (§ user): WORK (apps first, then the Amex day job)
                 and PLAY (everything that recharges it) — each headed by a big
                 playful divider that says what's inside. */}
-            <Separator word="Work" sub="apps by night · Amex by day" gradient="linear-gradient(100deg,var(--cyan),var(--violet) 55%,var(--magenta))" />
+            <Separator word="Work" sub="Amex by day · apps by night" gradient="linear-gradient(100deg,var(--cyan),var(--violet) 55%,var(--magenta))" />
             <Apps />
             <Career />
             <Separator word="Play" sub="muscle · music · monsters" gradient="linear-gradient(100deg,var(--gold),var(--coral),var(--magenta))" />

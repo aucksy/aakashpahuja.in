@@ -23,7 +23,7 @@ export default function Contact() {
       <div style={{ textAlign: 'center', maxWidth: 820, margin: '0 auto' }}>
         <Reveal margin={NEAR}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 22 }}>
-            {isMobile ? 'Arrival' : '07 · Arrival'}
+            {isMobile ? 'Arrival' : '09 · Arrival'}
           </div>
         </Reveal>
         <Reveal delay={0.05} margin={NEAR}>

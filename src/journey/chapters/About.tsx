@@ -87,7 +87,7 @@ export default function About() {
             <p style={bodyStyle}>
               I'm a <strong style={strongStyle}>vibe coder at heart</strong> — I love building flawless, delightful digital experiences
               anywhere a human meets a screen. By day I do product management at American Express; by night I design, code and ship my
-              own apps — every flow, every empty state, every haptic.
+              own apps — every flow, every empty state, every haptic. Nights and weekends, purely for the love of the craft.
             </p>
           </Reveal>
           <Reveal delay={0.24}>
