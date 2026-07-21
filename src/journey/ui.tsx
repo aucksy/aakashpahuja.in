@@ -52,31 +52,33 @@ export function Reveal({
   );
 }
 
-/** Chapter kicker: "02 · My Apps" with the chapter accent. */
-export function Kicker({ n, children, accent }: { n: string; children: ReactNode; accent: string }) {
+/** Chapter kicker: "02 · My Apps" with the chapter accent.
+ *  `plain` skips the built-in Reveal — for sections that animate as ONE unit
+ *  under a single parent Reveal (the kicker joins the group instead of
+ *  double-animating inside it). */
+export function Kicker({ n, children, accent, plain = false }: { n: string; children: ReactNode; accent: string; plain?: boolean }) {
   // Phones drop the section number (§ user) — just the dot + label.
   const isMobile = useIsMobile();
-  return (
-    <Reveal>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-          fontFamily: 'var(--font-mono)',
-          fontSize: 11.5,
-          letterSpacing: '0.26em',
-          textTransform: 'uppercase',
-          color: accent,
-          marginBottom: 18,
-        }}
-      >
-        <span style={{ width: 7, height: 7, borderRadius: 2, background: accent, boxShadow: `0 0 12px ${accent}` }} />
-        {!isMobile && `${n} · `}
-        {children}
-      </div>
-    </Reveal>
+  const row = (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        fontFamily: 'var(--font-mono)',
+        fontSize: 11.5,
+        letterSpacing: '0.26em',
+        textTransform: 'uppercase',
+        color: accent,
+        marginBottom: 18,
+      }}
+    >
+      <span style={{ width: 7, height: 7, borderRadius: 2, background: accent, boxShadow: `0 0 12px ${accent}` }} />
+      {!isMobile && `${n} · `}
+      {children}
+    </div>
   );
+  return plain ? row : <Reveal>{row}</Reveal>;
 }
 
 export const sectionStyle: CSSProperties = {

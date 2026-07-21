@@ -19,10 +19,15 @@ function Words({
 }) {
   const words = text.split(' ');
   return (
+    // Plays on MOUNT, like the hero's other pieces (Reveal `immediate`): the
+    // hero is on screen the instant the world arrives. The old whileInView
+    // (amount: 0.5) needed half the block visible — on phones the tall wrapped
+    // lines + URL-bar viewport could leave the statement waiting for a scroll
+    // while the mount-timed subtext played first, breaking the sequence
+    // (§ user). Desktop timing is identical: its observer fired at mount anyway.
     <motion.div
       initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, amount: 0.5 }}
+      animate="show"
       variants={{ hidden: {}, show: { transition: { staggerChildren: 0.07, delayChildren: 0.1 } } }}
       style={style}
     >
