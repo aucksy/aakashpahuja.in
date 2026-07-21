@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useExperience } from '@/store/useExperience';
 import { worldVideoUrl, preloadedSrc, requestPreload } from '@/lib/videoPreload';
 import { useIsMobile } from '@/lib/useIsMobile';
+import { glassTier } from '@/lib/perfTier';
 
 /**
  * The living world behind the glass (§ user spec #2/#4):
@@ -81,6 +82,11 @@ export default function WorldBackdrop() {
   if (!show) return null;
   const src = preloadedSrc(worldVideoUrl(theme));
   const light = theme === 'light';
+  // `lite` GPU tier (perfTier): a full-viewport backdrop blur over playing
+  // video is among the most expensive things a weak GPU can composite — drop
+  // the blur there and keep the dim gradient, which carries the readability.
+  // The tier is frozen after the overture, so reading it at render is stable.
+  const liteGpu = glassTier() === 'lite';
 
   return (
     <div aria-hidden="true" style={{ position: 'fixed', inset: 0, zIndex: 0, overflow: 'hidden', background: light ? '#f2d7bf' : '#05060b' }}>
@@ -93,8 +99,8 @@ export default function WorldBackdrop() {
           background: light
             ? 'linear-gradient(rgba(255,247,238,0.34), rgba(255,247,238,0.14) 40%, rgba(255,247,238,0.55))'
             : 'linear-gradient(rgba(4,5,10,0.74), rgba(4,5,10,0.6) 40%, rgba(4,5,10,0.87))',
-          backdropFilter: 'blur(5px) saturate(1.12)',
-          WebkitBackdropFilter: 'blur(5px) saturate(1.12)',
+          backdropFilter: liteGpu ? undefined : 'blur(5px) saturate(1.12)',
+          WebkitBackdropFilter: liteGpu ? undefined : 'blur(5px) saturate(1.12)',
           transition: 'background 1.2s ease',
         }}
       />

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { EffectComposer, Bloom, Noise, Vignette } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
@@ -6,6 +6,7 @@ import * as THREE from 'three';
 
 import { useExperience } from '@/store/useExperience';
 import { dprCap, type Quality } from '@/lib/env';
+import { glassTier, degradeTier, forceLite, tierDprScale, tierPost, type GlassTier } from '@/lib/perfTier';
 import { lerpPalette } from '@/theme/palettes';
 import { audio } from '@/audio/AudioEngine';
 import { worldVideoUrl, preloadProgress } from '@/lib/videoPreload';
@@ -24,9 +25,17 @@ const TRAIL_TAU = 0.85; // seconds — wipe-trail re-frost time constant
 
 /** The fullscreen glass quad: paints the world beneath into a CanvasTexture and
  *  runs the ripple fragment shader over it each frame. */
-function Ripple() {
+function Ripple({ onDegrade }: { onDegrade: () => void }) {
   const { gl, size } = useThree();
   const meshRef = useRef<THREE.Mesh>(null);
+
+  // Overture-only frame-time governor (perfTier § user): samples the REAL rAF
+  // cadence. A 30-frame warmup skips shader-compile stutter; p75 over 60-frame
+  // windows so a single GC spike can't demote a healthy machine. Goes inert
+  // the moment the visitor enters — the sacred gather/count-in never sees a
+  // tier change — and stops for good once a window holds ~50fps or the floor
+  // tier is reached.
+  const probe = useRef({ warm: 0, samples: [] as number[], active: true });
 
   const scene = useMemo(() => new SceneBeneath(), []);
   const texture = useMemo(() => {
@@ -213,6 +222,32 @@ function Ripple() {
     s.prevT = now;
     const time = now / 1000;
     const st = useExperience.getState();
+
+    // --- perf governor (overture only — frozen from the instant of Enter) ---
+    {
+      const pb = probe.current;
+      if (pb.active) {
+        if (st.phase !== 'overture') {
+          pb.active = false; // entered — the tier is locked for this visit
+        } else if (!document.hidden && ++pb.warm > 30) {
+          pb.samples.push(dt);
+          if (pb.samples.length >= 60) {
+            const sorted = [...pb.samples].sort((a, b) => a - b);
+            const p75 = sorted[(sorted.length * 0.75) | 0];
+            pb.samples.length = 0;
+            if (p75 > 1 / 48) {
+              // Sustained sub-~50fps: step down, then re-probe after a fresh
+              // warmup (the dpr/post realloc itself stutters a few frames).
+              pb.warm = 0;
+              onDegrade();
+              if (glassTier() === 'lite') pb.active = false; // floor reached
+            } else {
+              pb.active = false; // holds the rate — settled at this tier
+            }
+          }
+        }
+      }
+    }
 
     // decay pointer influence + age out the ripple sources
     s.ptrOn *= 0.97;
@@ -483,7 +518,10 @@ function glassDpr(quality: Quality): number {
   const h = window.innerHeight;
   const fit = Math.sqrt(GLASS_PX_BUDGET / Math.max(1, w * h));
   const native = window.devicePixelRatio || 1;
-  return Math.max(0.4, Math.min(native, dprCap(quality), 1.5, fit));
+  const base = Math.min(native, dprCap(quality), 1.5, fit);
+  // The measured tier (perfTier) scales further on GPUs the budget alone
+  // can't save — office iGPUs / software WebGL. 0.35 = absolute sanity floor.
+  return Math.max(0.35, base * tierDprScale());
 }
 
 export default function RippleGlass() {
@@ -494,13 +532,18 @@ export default function RippleGlass() {
   // world VIDEO behind it (WorldBackdrop, z:0). Post is dropped at world so the
   // composer can't paint over the video; the frame loop early-returns too.
   const world = phase === 'world';
+  // Measured GPU tier — the overture probe (in Ripple) steps this down on
+  // machines that can't hold the frame rate; each step shrinks the buffer and
+  // `lite` also drops the post chain. Frozen once the visitor enters.
+  const [tier, setTier] = useState<GlassTier>(() => glassTier());
+  const onDegrade = useCallback(() => setTier(degradeTier()), []);
   const [dpr, setDpr] = useState(() => glassDpr(quality));
   useEffect(() => {
     const onResize = () => setDpr(glassDpr(quality));
     onResize();
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
-  }, [quality]);
+  }, [quality, tier]);
   return (
     <Canvas
       style={{
@@ -515,10 +558,25 @@ export default function RippleGlass() {
       gl={{ alpha: false, antialias: false, powerPreference: 'high-performance', stencil: false }}
       dpr={dpr}
       camera={{ position: [0, 0, 1], near: 0.1, far: 10 }}
-      onCreated={({ gl }) => gl.setClearColor(0x05060b, 1)}
+      onCreated={({ gl }) => {
+        gl.setClearColor(0x05060b, 1);
+        // Software WebGL (GPU acceleration disabled by policy on corporate
+        // machines) can't run this stack at ANY resolution — go straight to
+        // the floor tier instead of burning two probe windows getting there.
+        try {
+          const ctx = gl.getContext();
+          const dbg = ctx.getExtension('WEBGL_debug_renderer_info');
+          const renderer = String(
+            dbg ? ctx.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : ctx.getParameter(ctx.RENDERER),
+          );
+          if (/swiftshader|llvmpipe|software|angle \(google/i.test(renderer)) setTier(forceLite());
+        } catch {
+          /* the overture probe will catch it anyway */
+        }
+      }}
     >
-      <Ripple />
-      {quality !== 'low' && !world && <Post reduced={reduced} />}
+      <Ripple onDegrade={onDegrade} />
+      {quality !== 'low' && !world && tierPost(tier) && <Post reduced={reduced} />}
     </Canvas>
   );
 }
