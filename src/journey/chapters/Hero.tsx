@@ -9,11 +9,13 @@ const EASE = [0.2, 0.7, 0.2, 1] as const;
 function Words({
   text,
   style,
+  delay = 0,
   accentWord,
   accentStyle,
 }: {
   text: string;
   style: React.CSSProperties;
+  delay?: number;
   accentWord?: string;
   accentStyle?: React.CSSProperties;
 }) {
@@ -24,11 +26,13 @@ function Words({
     // (amount: 0.5) needed half the block visible — on phones the tall wrapped
     // lines + URL-bar viewport could leave the statement waiting for a scroll
     // while the mount-timed subtext played first, breaking the sequence
-    // (§ user). Desktop timing is identical: its observer fired at mount anyway.
+    // (§ user). `delay` sequences the lines: with both starting together, the
+    // 5-word line's tail landed AFTER the 4-word line finished — an inverted,
+    // out-of-order read. Now it's line → line → subtext → cue, one cascade.
     <motion.div
       initial="hidden"
       animate="show"
-      variants={{ hidden: {}, show: { transition: { staggerChildren: 0.07, delayChildren: 0.1 } } }}
+      variants={{ hidden: {}, show: { transition: { staggerChildren: 0.07, delayChildren: 0.1 + delay } } }}
       style={style}
     >
       {words.map((w, i) => {
@@ -85,12 +89,15 @@ export default function Hero() {
         </div>
       )}
 
-      {/* Hero statement — two big lines; "obsession" in the accent gradient. */}
+      {/* Hero statement — two big lines; "obsession" in the accent gradient.
+          Sequenced (§ user): line 1's words are all launched by ~0.38s, line 2
+          begins at ~0.45s, subtext ~0.85s, cue ~1.15s — a clear top-to-bottom
+          cascade that settles in under 2s. */}
       <Words text="Products aren't built with prompts." style={bigStyle} />
-      <Words text="They're forged through obsession" style={bigStyle} accentWord="obsession" accentStyle={obsessionStyle} />
+      <Words text="They're forged through obsession" style={bigStyle} delay={0.35} accentWord="obsession" accentStyle={obsessionStyle} />
 
       {/* Subtext — the promise under the statement (§ user). */}
-      <Reveal delay={0.55} immediate>
+      <Reveal delay={0.85} immediate>
         <p
           style={{
             fontFamily: 'var(--font-body)',
@@ -107,7 +114,7 @@ export default function Hero() {
         </p>
       </Reveal>
 
-      <Reveal delay={0.85} immediate>
+      <Reveal delay={1.15} immediate>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 46, fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase', color: 'var(--muted)' }}>
           <motion.span animate={{ y: [0, 6, 0] }} transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}>
             Travel the path
