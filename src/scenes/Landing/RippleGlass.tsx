@@ -466,18 +466,24 @@ function Post({ reduced }: { reduced: boolean }) {
 // 25-tap blur per pixel, then the bloom chain repaints the frame), so its cost
 // scales with DEVICE pixels — big desktop monitors (1440p/4K, Windows 125–150%
 // scaling) blow the GPU frame budget while phones stay tiny. The glass is
-// frosted + box-blurred — soft by design — so cap the canvas at a ~1080p pixel
+// frosted + box-blurred — soft by design — so cap the canvas at a fixed pixel
 // budget and let the browser upscale: visually indistinguishable through the
-// frost, 2–4× fewer shaded pixels. u_res reads the real drawing-buffer size
-// every frame, so blur radii / gradients adapt automatically. Render-resolution
-// only — no timing, beat, loader or shader-logic change.
-const GLASS_PX_BUDGET = 2_300_000;
+// frost. The scene texture beneath is ≤860px wide, so extra glass resolution
+// buys nothing — 1.2M device px ≈ the phone-class fill cost that is proven
+// smooth through the gather + count-in. The old 0.75 floor silently OVERRODE
+// `fit` on any viewport past ~4.1M CSS px (4K at 100/125% scaling shipped
+// 3.0–4.7M px, ultrawide 1440p ~2.8M — 120–200% of budget), which is why the
+// original cap never landed on big monitors; 0.4 is a sanity guard only.
+// u_res reads the real drawing-buffer size every frame, so blur radii /
+// gradients adapt automatically. Render-resolution only — no timing, beat,
+// loader or shader-logic change.
+const GLASS_PX_BUDGET = 1_200_000;
 function glassDpr(quality: Quality): number {
   const w = window.innerWidth;
   const h = window.innerHeight;
   const fit = Math.sqrt(GLASS_PX_BUDGET / Math.max(1, w * h));
   const native = window.devicePixelRatio || 1;
-  return Math.max(0.75, Math.min(native, dprCap(quality), 1.5, fit));
+  return Math.max(0.4, Math.min(native, dprCap(quality), 1.5, fit));
 }
 
 export default function RippleGlass() {
