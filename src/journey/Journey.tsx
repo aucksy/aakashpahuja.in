@@ -2,7 +2,6 @@ import { motion } from 'framer-motion';
 import SmoothScroll from './SmoothScroll';
 import ChapterRail from './ChapterRail';
 import { Reveal } from './ui';
-import { useIsMobile } from '@/lib/useIsMobile';
 import Hero from './chapters/Hero';
 import About from './chapters/About';
 import Career from './chapters/Career';
@@ -10,7 +9,6 @@ import Apps from './chapters/Apps';
 import Fitness from './chapters/Fitness';
 import Guitar from './chapters/Guitar';
 import Gaming from './chapters/Gaming';
-import GitHub from './chapters/GitHub';
 import Contact from './chapters/Contact';
 
 /** A full-width divider — one big, hero-scale word that heads the Work and Play
@@ -65,7 +63,6 @@ function Separator({ word, sub, gradient }: { word: string; sub?: string; gradie
  * inert through the overture/burst, it fades in once the visitor is in the world.
  */
 export default function Journey() {
-  const isMobile = useIsMobile();
   // Mounts only once the visitor is in the world, so it fades up on mount.
   return (
     <>
@@ -89,8 +86,6 @@ export default function Journey() {
             <Fitness />
             <Guitar />
             <Gaming />
-            {/* GitHub is sample data — dropped on phones (§ user); no gap left. */}
-            {!isMobile && <GitHub />}
             <Contact />
           </main>
         </motion.div>

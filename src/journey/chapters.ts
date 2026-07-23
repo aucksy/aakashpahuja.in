@@ -16,6 +16,5 @@ export const CHAPTERS: ChapterMeta[] = [
   { id: 'fitness', n: '05', label: 'Fitness', accent: 'var(--coral)' },
   { id: 'guitar', n: '06', label: 'Guitar & Singing', accent: 'var(--magenta)' },
   { id: 'gaming', n: '07', label: 'Gaming', accent: 'var(--violet)' },
-  { id: 'github', n: '08', label: 'GitHub', accent: 'var(--cyan)' },
-  { id: 'contact', n: '09', label: 'Contact', accent: 'var(--gold)' },
+  { id: 'contact', n: '08', label: 'Contact', accent: 'var(--gold)' },
 ];

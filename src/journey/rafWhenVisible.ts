@@ -1,5 +1,5 @@
 /** Run `frame` on requestAnimationFrame only while `el` is near the viewport.
- *  Chapter canvases (guitar strings, github constellation) must not burn frame
+ *  Chapter canvases (e.g. the guitar strings) must not burn frame
  *  budget while off-screen — otherwise they'd steal from whatever the visitor is
  *  actually looking at. Returns a cleanup fn. */
 export function rafWhenVisible(el: HTMLElement, frame: () => void): () => void {

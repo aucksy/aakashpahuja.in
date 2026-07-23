@@ -50,7 +50,7 @@ export default function NoWebGLFallback() {
           <li><strong style={{ color: 'var(--ink)' }}>Forge AI</strong> — a workout &amp; calorie tracker you talk to.</li>
         </ul>
         <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', marginTop: 24, fontFamily: 'var(--font-mono)', fontSize: 12, letterSpacing: '0.06em' }}>
-          <a href="https://github.com/aucksy" style={{ color: 'var(--cyan)' }}>GitHub</a>
+          <a href="https://www.linkedin.com/in/aakashpahuja/" style={{ color: 'var(--cyan)' }}>LinkedIn</a>
           <a href="https://instagram.com/aakashpahuja108" style={{ color: 'var(--cyan)' }}>Instagram</a>
           <a href="https://hevy.com/user/aucksy" style={{ color: 'var(--cyan)' }}>Hevy</a>
         </div>

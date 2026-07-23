@@ -4,7 +4,7 @@ import { useIsMobile } from '@/lib/useIsMobile';
 
 const LINKS = [
   { label: 'Email', value: 'connect@aakashpahuja.in', href: 'mailto:connect@aakashpahuja.in', accent: 'var(--cyan)' },
-  { label: 'GitHub', value: 'github.com/aucksy', href: 'https://github.com/aucksy', accent: 'var(--violet)' },
+  { label: 'LinkedIn', value: 'linkedin.com/in/aakashpahuja', href: 'https://www.linkedin.com/in/aakashpahuja/', accent: 'var(--blue)' },
   { label: 'Instagram', value: '@aakashpahuja108', href: 'https://instagram.com/aakashpahuja108', accent: 'var(--magenta)' },
   { label: 'Hevy', value: 'hevy.com/user/aucksy', href: 'https://hevy.com/user/aucksy', accent: 'var(--coral)' },
 ];
@@ -23,7 +23,7 @@ export default function Contact() {
       <div style={{ textAlign: 'center', maxWidth: 820, margin: '0 auto' }}>
         <Reveal margin={NEAR}>
           <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11.5, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 22 }}>
-            {isMobile ? 'Arrival' : '09 · Arrival'}
+            {isMobile ? 'Arrival' : '08 · Arrival'}
           </div>
         </Reveal>
         <Reveal delay={0.05} margin={NEAR}>

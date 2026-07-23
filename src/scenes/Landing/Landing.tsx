@@ -30,7 +30,7 @@ function GlassLoader() {
 /**
  * The whole experience: a persistent fixed WebGL world (overture ripple → burst
  * dance → neon city) with the overture HUD over it, and the scrolling Journey
- * (Hero → Apps → Fitness → Guitar → Gaming → GitHub → Contact) that unlocks once
+ * (Hero → Apps → Fitness → Guitar → Gaming → Contact) that unlocks once
  * the visitor is inside. One continuous world — never a page load (§01).
  */
 export default function Landing() {

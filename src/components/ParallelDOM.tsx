@@ -65,7 +65,7 @@ export default function ParallelDOM() {
 
       <nav aria-label="Links">
         <ul>
-          <li><a href="https://github.com/aucksy">GitHub — github.com/aucksy</a></li>
+          <li><a href="https://www.linkedin.com/in/aakashpahuja/">LinkedIn — linkedin.com/in/aakashpahuja</a></li>
           <li><a href="https://instagram.com/aakashpahuja108">Instagram — aakashpahuja108</a></li>
           <li><a href="https://hevy.com/user/aucksy">Hevy — hevy.com/user/aucksy</a></li>
         </ul>
