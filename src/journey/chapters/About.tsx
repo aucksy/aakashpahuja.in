@@ -28,7 +28,7 @@ const bodyStyle: CSSProperties = {
 const strongStyle: CSSProperties = { color: 'var(--ink)', fontWeight: 600 };
 
 const STATS = [
-  { n: '9+', label: 'years in product @ Amex' },
+  { n: '9+', label: 'years @ Amex across product, UAT and customer service' },
   { n: '6', label: 'apps built & shipped solo' },
   { n: '0', label: 'templates used' },
   { n: '∞', label: 'black coffee' },

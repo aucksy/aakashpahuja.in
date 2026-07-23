@@ -98,7 +98,7 @@ export default function Career() {
           </div>
           <p style={{ ...bodyStyle, marginTop: 'clamp(20px,2.6vw,26px)', maxWidth: '78ch' }}>
             Before that: nearly a decade at Amex across <strong style={strongStyle}>UAT delivery</strong> (90+ projects, 500+
-            communications) and <strong style={strongStyle}>customer-operations leadership</strong> — plus a string of founder ventures
+            communications) and <strong style={strongStyle}>customer service</strong> — plus a string of founder ventures
             along the way: a tech consultancy, a D2C apparel brand, an online grocery store and a music-gear brand — all chapters
             closed. Product mindset, learned the hard way.
           </p>

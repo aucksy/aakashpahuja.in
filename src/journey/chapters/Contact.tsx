@@ -18,6 +18,29 @@ const NEAR = '0px 0px -10% 0px';
 /** SC-09 — the road curves into the sky; contact links as constellations. */
 export default function Contact() {
   const isMobile = useIsMobile();
+  const renderCard = (l: (typeof LINKS)[number], delay: number) => (
+    <Reveal key={l.label} delay={delay} margin={NEAR}>
+      <a
+        href={l.href}
+        target={l.href.startsWith('http') ? '_blank' : undefined}
+        rel="noreferrer"
+        style={{
+          display: 'block',
+          textDecoration: 'none',
+          padding: '16px 24px',
+          borderRadius: 16,
+          background: 'var(--glass-fill)',
+          border: '1px solid var(--glass-border)',
+          backdropFilter: 'blur(14px)',
+          WebkitBackdropFilter: 'blur(14px)',
+          minWidth: 200,
+        }}
+      >
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: l.accent, marginBottom: 6 }}>{l.label}</div>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: 15, color: 'var(--ink)' }}>{l.value}</div>
+      </a>
+    </Reveal>
+  );
   return (
     <Chapter id="contact" label="Contact">
       <div style={{ textAlign: 'center', maxWidth: 820, margin: '0 auto' }}>
@@ -36,30 +59,13 @@ export default function Contact() {
           </h2>
         </Reveal>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 14, margin: '48px 0 0' }}>
-          {LINKS.map((l, i) => (
-            <Reveal key={l.label} delay={0.1 + i * 0.05} margin={NEAR}>
-              <a
-                href={l.href}
-                target={l.href.startsWith('http') ? '_blank' : undefined}
-                rel="noreferrer"
-                style={{
-                  display: 'block',
-                  textDecoration: 'none',
-                  padding: '16px 24px',
-                  borderRadius: 16,
-                  background: 'var(--glass-fill)',
-                  border: '1px solid var(--glass-border)',
-                  backdropFilter: 'blur(14px)',
-                  WebkitBackdropFilter: 'blur(14px)',
-                  minWidth: 200,
-                }}
-              >
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10.5, letterSpacing: '0.2em', textTransform: 'uppercase', color: l.accent, marginBottom: 6 }}>{l.label}</div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: 15, color: 'var(--ink)' }}>{l.value}</div>
-              </a>
-            </Reveal>
-          ))}
+        {/* Email alone on the first line; the three social links in a row
+            beneath, in order LinkedIn · Instagram · Hevy (§ user). */}
+        <div style={{ display: 'flex', justifyContent: 'center', margin: '48px 0 0' }}>
+          {renderCard(LINKS[0], 0.1)}
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 14, marginTop: 14 }}>
+          {LINKS.slice(1).map((l, i) => renderCard(l, 0.15 + i * 0.05))}
         </div>
 
         <Reveal delay={0.4} margin={NEAR}>
